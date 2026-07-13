@@ -129,6 +129,10 @@ const data = {
           url: "/admin/cms/banners",
         },
         {
+          title: "Landing Pages",
+          url: "/admin/landing-pages",
+        },
+        {
           title: "Testimonials",
           url: "/admin/cms/testimonials",
         },
