@@ -4,14 +4,18 @@ const path = require('path');
 
 // Read .env.local file to get MONGODB_URI
 const envPath = path.join(__dirname, '../.env.local');
-let mongodbUri = process.env.MONGODB_URI || '';
+let mongodbUri = '';
 
-if (!mongodbUri && fs.existsSync(envPath)) {
+if (fs.existsSync(envPath)) {
   const envContent = fs.readFileSync(envPath, 'utf8');
   const match = envContent.match(/^MONGODB_URI=(.*)$/m);
   if (match && match[1]) {
     mongodbUri = match[1].trim().replace(/['"]/g, '');
   }
+}
+
+if (!mongodbUri) {
+  mongodbUri = 'mongodb+srv://Climax Apparels:xI2QuBaFZsYQ5vRD@cluster0.e5n1hnl.mongodb.net/Climax Apparels';
 }
 
 console.log('Connecting to MongoDB...');
@@ -63,13 +67,7 @@ const faqs = [
 
 async function seed() {
   try {
-    try {
-      await mongoose.connect(mongodbUri);
-    } catch (connErr) {
-      console.log('SRV connection failed, trying direct connection fallback...');
-      const directUri = 'mongodb://Climax Apparels:xI2QuBaFZsYQ5vRD@ac-jrowhop-shard-00-00.e5n1hnl.mongodb.net:27017,ac-jrowhop-shard-00-01.e5n1hnl.mongodb.net:27017,ac-jrowhop-shard-00-02.e5n1hnl.mongodb.net:27017/Climax Apparels?ssl=true&authSource=admin';
-      await mongoose.connect(directUri);
-    }
+    await mongoose.connect(mongodbUri);
     console.log('Connected to MongoDB successfully.');
 
     // Clear existing FAQs

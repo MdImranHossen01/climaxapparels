@@ -4,14 +4,18 @@ const path = require('path');
 
 // Read .env.local file to get MONGODB_URI
 const envPath = path.join(__dirname, '../.env.local');
-let mongodbUri = process.env.MONGODB_URI || '';
+let mongodbUri = '';
 
-if (!mongodbUri && fs.existsSync(envPath)) {
+if (fs.existsSync(envPath)) {
   const envContent = fs.readFileSync(envPath, 'utf8');
   const match = envContent.match(/^MONGODB_URI=(.*)$/m);
   if (match && match[1]) {
     mongodbUri = match[1].trim().replace(/['"]/g, '');
   }
+}
+
+if (!mongodbUri) {
+  mongodbUri = 'mongodb+srv://Climax Apparels:xI2QuBaFZsYQ5vRD@cluster0.e5n1hnl.mongodb.net/Climax Apparels';
 }
 
 console.log('Connecting to MongoDB...');
@@ -1079,7 +1083,7 @@ async function seed() {
       if (!categoryId) {
         throw new Error(`Category with slug "${p.categorySlug}" not found in DB! Seed categories first.`);
       }
-      
+
       const productCopy = { ...p };
       productCopy.categories = [categoryId];
       delete productCopy.categorySlug;
@@ -1110,18 +1114,18 @@ async function seed() {
     // Insert new products
     const insertResult = await Product.insertMany(finalProducts);
     console.log(`Seeded ${insertResult.length} products successfully:`);
-    
+
     // Count verification
     let flashCount = 0;
     let featuredCount = 0;
     let newCount = 0;
-    
+
     insertResult.forEach((prod, i) => {
       if (prod.isFlashSale) flashCount++;
       if (prod.isFeatured) featuredCount++;
       if (prod.isNewArrival) newCount++;
     });
-    
+
     console.log(`Verification: Flash Sale: ${flashCount}, Featured: ${featuredCount}, New Arrival: ${newCount}`);
 
   } catch (error) {
