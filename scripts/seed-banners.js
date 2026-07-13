@@ -4,19 +4,14 @@ const path = require('path');
 
 // Read .env.local file to get MONGODB_URI
 const envPath = path.join(__dirname, '../.env.local');
-let mongodbUri = '';
+let mongodbUri = process.env.MONGODB_URI || '';
 
-if (fs.existsSync(envPath)) {
+if (!mongodbUri && fs.existsSync(envPath)) {
   const envContent = fs.readFileSync(envPath, 'utf8');
   const match = envContent.match(/^MONGODB_URI=(.*)$/m);
   if (match && match[1]) {
     mongodbUri = match[1].trim().replace(/['"]/g, '');
   }
-}
-
-if (!mongodbUri) {
-  // Fallback if env file doesn't parse correctly
-  mongodbUri = 'mongodb+srv://Climax Apparels:S4Epscw0SOkd5ZtG@cluster0.e5n1hnl.mongodb.net/Climax Apparels';
 }
 
 console.log('Connecting to MongoDB...');
