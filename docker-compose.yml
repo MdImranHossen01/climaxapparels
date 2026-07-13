@@ -1,0 +1,14 @@
+services:
+  web:
+    image: ${DOCKER_IMAGE_TAG}
+    container_name: climaxapparels-app
+    restart: unless-stopped
+    ports:
+      - "3001:3000"
+    env_file:
+      - .env.local
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
