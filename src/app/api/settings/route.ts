@@ -63,6 +63,11 @@ export async function GET() {
       });
     }
 
+    if (settings.contact?.email && settings.contact.email.includes(' ')) {
+      settings.contact.email = settings.contact.email.replace(/\s+/g, '').toLowerCase();
+      await settings.save({ validateBeforeSave: false });
+    }
+
     const rawSettings = settings.toObject({ getters: false });
     const maskedSettings = settings.toObject({ getters: true });
 
