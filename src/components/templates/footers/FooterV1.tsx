@@ -110,6 +110,7 @@ export default function FooterV1() {
     ? settings.footerNavigation
     : [
       { label: 'Shop All', href: '/shop' },
+      { label: 'Factory Profile', href: '/factory-profile' },
       { label: 'New Arrivals', href: '/shop?filter=new' },
       { label: 'Order Tracking', href: '/track-order' },
       { label: 'Contact Support', href: '/contact' }

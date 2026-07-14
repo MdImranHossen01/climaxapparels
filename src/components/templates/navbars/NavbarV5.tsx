@@ -98,6 +98,7 @@ export default function NavbarV5() {
   const NAV_LINKS = [
     { label: 'Discovery', href: '/shop' },
     { label: 'Atelier', href: '/categories' },
+    { label: 'Factory Profile', href: '/factory-profile' },
     { label: 'Journal', href: '/blog' }
   ];
 

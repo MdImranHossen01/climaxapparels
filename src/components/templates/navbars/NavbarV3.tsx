@@ -1,4 +1,4 @@
-﻿/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
@@ -96,6 +96,7 @@ export default function NavbarV3() {
   const NAV_LINKS = [
     { label: 'Shop', href: '/shop' },
     { label: 'Curated', href: '/categories' },
+    { label: 'Factory Profile', href: '/factory-profile' },
     { label: 'Journal', href: '/blog' }
   ];
 

@@ -150,7 +150,7 @@ export async function POST(req: NextRequest) {
     let catalog = await Catalog.findOne().sort({ updatedAt: -1 });
     if (catalog) {
       if (body.companyInfo) {
-        catalog.companyInfo = { ...catalog.companyInfo.toObject?.() ?? catalog.companyInfo, ...body.companyInfo };
+        catalog.companyInfo = { ...((catalog.companyInfo as any).toObject?.() ?? catalog.companyInfo), ...body.companyInfo };
         catalog.markModified('companyInfo');
       }
       if (body.categories !== undefined) {

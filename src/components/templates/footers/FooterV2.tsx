@@ -1,4 +1,4 @@
-﻿/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import Link from 'next/link';
@@ -97,6 +97,7 @@ export default function FooterV2() {
     ? settings.footerNavigation
     : [
       { label: 'Shop All', href: '/shop' },
+      { label: 'Factory Profile', href: '/factory-profile' },
       { label: 'New Arrivals', href: '/shop?filter=new' },
       { label: 'Order Tracking', href: '/track-order' },
       { label: 'Contact Support', href: '/contact' }
