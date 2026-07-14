@@ -28,7 +28,7 @@ function generateBarcodeHtml(value: string): string {
     totalWidth += 1; // Inter-character gap
   }
 
-  let svgHtml = `<svg viewBox="0 0 ${totalWidth} 45" width="100%" height="45" xmlns="http://www.w3.org/2000/svg" style="max-width: 320px; display: block; margin: 0 auto;">`;
+  let svgHtml = `<svg viewBox="0 0 ${totalWidth} 45" width="100%" height="45" xmlns="http://www.w3.org/2000/svg" style="max-width: 320px; display: block; margin: 0 auto; shape-rendering: crispEdges;" shape-rendering="crispEdges">`;
   let currentX = 0;
   for (const char of encoded) {
     const pat = CODE39_MAP[char] || CODE39_MAP['*'];
@@ -47,14 +47,11 @@ function generateBarcodeHtml(value: string): string {
   return svgHtml;
 }
 
-export async function printStickerInvoice(order: any, settings: any): Promise<void> {
+export async function printStickerInvoice(orderOrOrders: any | any[], settings: any): Promise<void> {
+  const orders = Array.isArray(orderOrOrders) ? orderOrOrders : [orderOrOrders];
+  if (orders.length === 0) return;
+
   const storeName: string = settings?.siteName || settings?.brandName || 'Climax Apparels';
-  const orderId = String(order.shortId || order._id || '').slice(-8).toUpperCase();
-  const createdAt = order.createdAt ? new Date(order.createdAt) : null;
-  const dateStr = createdAt && isValid(createdAt) ? format(createdAt, 'dd/MM/yyyy hh:mm a') : 'N/A';
-  const consignmentId: string = order.shippingDetails?.consignmentId || order.shippingDetails?.trackingId || '';
-  const courierName: string = order.shippingDetails?.courierName || 'Steadfast';
-  const items: any[] = Array.isArray(order.items) ? order.items : [];
 
   // Dynamic theme variables
   let primary = '#00D1B2';
@@ -82,16 +79,98 @@ export async function printStickerInvoice(order: any, settings: any): Promise<vo
     destructive = getHsl('--destructive', destructive);
   }
 
-  const codAmount = order.paymentStatus === 'Paid' ? 0 : Math.round(order.totalAmount);
-  const trackingUrl = order.shippingDetails?.trackingUrl || `https://steadfast.com.bd/t/${consignmentId}`;
-  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(trackingUrl)}`;
+  const stickersHtml = orders.map((order, index) => {
+    const orderId = String(order.shortId || order._id || '').slice(-8).toUpperCase();
+    const createdAt = order.createdAt ? new Date(order.createdAt) : null;
+    const dateStr = createdAt && isValid(createdAt) ? format(createdAt, 'dd/MM/yyyy hh:mm a') : 'N/A';
+    const consignmentId: string = order.shippingDetails?.consignmentId || order.shippingDetails?.trackingId || '';
+    const courierName: string = order.shippingDetails?.courierName || 'Steadfast';
+    const items: any[] = Array.isArray(order.items) ? order.items : [];
+
+    const codAmount = order.paymentStatus === 'Paid' ? 0 : Math.round(order.totalAmount);
+    const trackingUrl = order.shippingDetails?.trackingUrl || `https://steadfast.com.bd/t/${consignmentId}`;
+    const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(trackingUrl)}`;
+
+    return `
+      <div class="sticker-container" style="${index < orders.length - 1 ? 'page-break-after: always; break-after: page;' : ''}">
+        <div>
+          <div class="top-header">RTN &gt; ${storeName} - ${orderId}</div>
+          <div class="invoice-label">Invoice: #${orderId}</div>
+
+          ${consignmentId ? `
+            <div class="barcode-wrapper">
+              ${generateBarcodeHtml(consignmentId)}
+              <div class="barcode-text">${consignmentId}</div>
+            </div>
+          ` : `
+            <div style="border: 1px solid var(--destructive); color: var(--destructive); padding: 4px; text-align: center; font-weight: 700; font-size: 9px; margin-bottom: 4px;">
+              NO COURIER BOOKING / CONSIGNMENT ID MISSING
+            </div>
+          `}
+
+          <div class="grid-container">
+            <div class="qr-box">
+              ${consignmentId ? `<img src="${qrCodeUrl}" alt="QR Link" />` : `<div style="font-size: 8px; text-align: center; color: #888;">No QR Code</div>`}
+            </div>
+            <div class="info-table">
+              <div class="table-header">${courierName} Courier</div>
+              <div class="table-row">
+                <div class="table-cell table-cell-bold">P: ${order.shippingAddress?.city || 'N/A'}</div>
+              </div>
+              <div class="table-row">
+                <div class="table-cell">D: ${order.shippingAddress?.state || order.shippingAddress?.city || 'N/A'}</div>
+              </div>
+              <div class="table-row">
+                <div class="table-cell table-cell-bold" style="background-color: #f3f4f6;">
+                  ${order.shippingAddress?.city || 'N/A'}
+                </div>
+              </div>
+              <div class="table-row">
+                <div class="table-cell table-cell-split">
+                  <span style="font-weight: 700;">COD</span>
+                  <span style="font-weight: 700;">৳${codAmount}</span>
+                </div>
+              </div>
+              <div class="table-row">
+                <div class="table-cell" style="font-size: 8px; color: #555;">WGT# 0.5 KG</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="recipient-details">
+            <div class="recipient-name">${order.shippingAddress?.fullName || 'Customer'}</div>
+            <div class="recipient-phone">${order.shippingAddress?.phone || ''}</div>
+            <div>${order.shippingAddress?.street || ''}, ${order.shippingAddress?.city || ''}</div>
+          </div>
+        </div>
+
+        <div class="items-section">
+          <div style="font-weight: 700; margin-bottom: 2px;">ITEMS (${items.length}):</div>
+          ${items.slice(0, 3).map(item => `
+            <div class="item-line">
+              <span>• ${item.name}${item.size ? ` (${item.size})` : ''}</span>
+              <span style="font-weight: 700;">Qty: ${item.quantity}</span>
+            </div>
+          `).join('')}
+          ${items.length > 3 ? `
+            <div style="font-size: 8px; color: #555;">+${items.length - 3} more item(s)</div>
+          ` : ''}
+        </div>
+
+        <div class="footer-brand">
+          <span>Date: ${dateStr}</span>
+          <span style="font-weight: 700; text-transform: uppercase;">${storeName}</span>
+        </div>
+      </div>
+    `;
+  }).join('');
 
   const htmlContent = `
     <!DOCTYPE html>
     <html>
       <head>
         <meta charset="utf-8">
-        <title>Sticker #${orderId}</title>
+        <title>Sticker Print</title>
         <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
         <style>
           :root {
@@ -112,8 +191,6 @@ export async function printStickerInvoice(order: any, settings: any): Promise<vo
             font-family: 'Inter', 'Noto Sans Bengali', sans-serif;
             margin: 0;
             padding: 0;
-            width: 100mm;
-            height: 100mm;
             background-color: var(--background);
             color: var(--foreground);
             font-size: 11px;
@@ -127,6 +204,8 @@ export async function printStickerInvoice(order: any, settings: any): Promise<vo
             flex-direction: column;
             justify-content: space-between;
             border: 1px solid #000000;
+            page-break-inside: avoid;
+            break-inside: avoid;
           }
           .top-header {
             text-align: center;
@@ -263,76 +342,7 @@ export async function printStickerInvoice(order: any, settings: any): Promise<vo
         </style>
       </head>
       <body>
-        <div class="sticker-container">
-          <div>
-            <div class="top-header">RTN &gt; ${storeName} - ${orderId}</div>
-            <div class="invoice-label">Invoice: #${orderId}</div>
-
-            ${consignmentId ? `
-              <div class="barcode-wrapper">
-                ${generateBarcodeHtml(consignmentId)}
-                <div class="barcode-text">${consignmentId}</div>
-              </div>
-            ` : `
-              <div style="border: 1px solid var(--destructive); color: var(--destructive); padding: 4px; text-align: center; font-weight: 700; font-size: 9px; margin-bottom: 4px;">
-                NO COURIER BOOKING / CONSIGNMENT ID MISSING
-              </div>
-            `}
-
-            <div class="grid-container">
-              <div class="qr-box">
-                ${consignmentId ? `<img src="${qrCodeUrl}" alt="QR Link" />` : `<div style="font-size: 8px; text-align: center; color: #888;">No QR Code</div>`}
-              </div>
-              <div class="info-table">
-                <div class="table-header">${courierName} Courier</div>
-                <div class="table-row">
-                  <div class="table-cell table-cell-bold">P: ${order.shippingAddress?.city || 'N/A'}</div>
-                </div>
-                <div class="table-row">
-                  <div class="table-cell">D: ${order.shippingAddress?.state || order.shippingAddress?.city || 'N/A'}</div>
-                </div>
-                <div class="table-row">
-                  <div class="table-cell table-cell-bold" style="background-color: #f3f4f6;">
-                    ${order.shippingAddress?.city || 'N/A'}
-                  </div>
-                </div>
-                <div class="table-row">
-                  <div class="table-cell table-cell-split">
-                    <span style="font-weight: 700;">COD</span>
-                    <span style="font-weight: 700;">৳${codAmount}</span>
-                  </div>
-                </div>
-                <div class="table-row">
-                  <div class="table-cell" style="font-size: 8px; color: #555;">WGT# 0.5 KG</div>
-                </div>
-              </div>
-            </div>
-
-            <div class="recipient-details">
-              <div class="recipient-name">${order.shippingAddress?.fullName || 'Customer'}</div>
-              <div class="recipient-phone">${order.shippingAddress?.phone || ''}</div>
-              <div>${order.shippingAddress?.street || ''}, ${order.shippingAddress?.city || ''}</div>
-            </div>
-          </div>
-
-          <div class="items-section">
-            <div style="font-weight: 700; margin-bottom: 2px;">ITEMS (${items.length}):</div>
-            ${items.slice(0, 3).map(item => `
-              <div class="item-line">
-                <span>• ${item.name}${item.size ? ` (${item.size})` : ''}</span>
-                <span style="font-weight: 700;">Qty: ${item.quantity}</span>
-              </div>
-            `).join('')}
-            ${items.length > 3 ? `
-              <div style="font-size: 8px; color: #555;">+${items.length - 3} more item(s)</div>
-            ` : ''}
-          </div>
-
-          <div class="footer-brand">
-            <span>Date: ${dateStr}</span>
-            <span style="font-weight: 700; text-transform: uppercase;">${storeName}</span>
-          </div>
-        </div>
+        ${stickersHtml}
       </body>
     </html>
   `;
@@ -356,4 +366,5 @@ export async function printStickerInvoice(order: any, settings: any): Promise<vo
       }
     }, 1000);
   }
+}
 }

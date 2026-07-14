@@ -1,6 +1,9 @@
 import { format, isValid } from 'date-fns';
 
-export async function generateInvoicePDF(order: any, settings: any, mode: 'download' | 'print' = 'download') {
+export async function generateInvoicePDF(orderOrOrders: any | any[], settings: any, mode: 'download' | 'print' = 'download') {
+  const orders = Array.isArray(orderOrOrders) ? orderOrOrders : [orderOrOrders];
+  if (orders.length === 0) return;
+
   const brandName = settings?.brandName || "Climax Apparels";
   const brandEmail = settings?.contact?.email || "";
   const brandPhone = settings?.contact?.phone || "";
@@ -30,39 +33,129 @@ export async function generateInvoicePDF(order: any, settings: any, mode: 'downl
     background = getHsl('--background', background);
   }
 
-  const getAbsoluteUrl = (url: string) => {
-    if (!url) return '';
-    if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:')) return url;
-    if (typeof window !== 'undefined') {
-      return `${window.location.origin}${url.startsWith('/') ? '' : '/'}${url}`;
-    }
-    return url;
-  };
+  const invoicesHtml = orders.map((order, index) => {
+    const invoiceId = String(order._id || order.shortId || "").slice(-8).toUpperCase().replace(/^0+/, '');
+    const createdAt = order.createdAt ? new Date(order.createdAt) : null;
+    const formattedDate = createdAt && isValid(createdAt) ? format(createdAt, "dd MMM yyyy") : "N/A";
 
-  const invoiceId = String(order._id || order.shortId || "").slice(-8).toUpperCase().replace(/^0+/, '');
-  const createdAt = order.createdAt ? new Date(order.createdAt) : null;
-  const formattedDate = createdAt && isValid(createdAt) ? format(createdAt, "dd MMM yyyy") : "N/A";
+    const items = Array.isArray(order.items) ? order.items : [];
+    const subtotalRaw = items.reduce((acc: number, item: any) => {
+      const price = Number(item.price) || 0;
+      const quantity = Number(item.quantity) || 0;
+      return acc + price * quantity;
+    }, 0);
+    const subtotal = Number.isFinite(subtotalRaw) ? subtotalRaw : 0;
+    const deliveryCharge = order.deliveryCharge !== undefined
+      ? Number(order.deliveryCharge) || 0
+      : Math.max(0, (Number(order.totalAmount) || 0) - subtotal);
+    const couponDiscount = Number(order.couponDiscountAmount) || 0;
+    const walletUsed = Number(order.walletAmountUsed) || 0;
+    const totalAmount = Math.round(order.totalAmount - couponDiscount - walletUsed);
 
-  const items = Array.isArray(order.items) ? order.items : [];
-  const subtotalRaw = items.reduce((acc: number, item: any) => {
-    const price = Number(item.price) || 0;
-    const quantity = Number(item.quantity) || 0;
-    return acc + price * quantity;
-  }, 0);
-  const subtotal = Number.isFinite(subtotalRaw) ? subtotalRaw : 0;
-  const deliveryCharge = order.deliveryCharge !== undefined
-    ? Number(order.deliveryCharge) || 0
-    : Math.max(0, (Number(order.totalAmount) || 0) - subtotal);
-  const couponDiscount = Number(order.couponDiscountAmount) || 0;
-  const walletUsed = Number(order.walletAmountUsed) || 0;
-  const totalAmount = Math.round(order.totalAmount - couponDiscount - walletUsed);
+    return `
+      <div class="invoice-container" style="${index < orders.length - 1 ? 'page-break-after: always; break-after: page;' : ''}">
+        <div class="header">
+          <div class="brand-logo-container">
+            <div class="brand-logo">${brandName}</div>
+            <div class="brand-details">
+              ${brandAddress ? `<div>${brandAddress}</div>` : ''}
+              <div>Email: ${brandEmail} | Phone: ${brandPhone}</div>
+            </div>
+          </div>
+          <div>
+            <h1 class="invoice-title">INVOICE</h1>
+          </div>
+        </div>
+
+        <div class="details-grid">
+          <div class="bill-to">
+            <h3>Bill To</h3>
+            <p><strong>${order.shippingAddress?.fullName || "Customer"}</strong></p>
+            ${order.shippingAddress?.street ? `<p>${order.shippingAddress.street}</p>` : ''}
+            <p>${order.shippingAddress?.city || ""}${order.shippingAddress?.zipCode ? `, ${order.shippingAddress.zipCode}` : ""}</p>
+            <p>Phone: ${order.shippingAddress?.phone || ""}</p>
+          </div>
+          <div class="order-info">
+            <h3>Order Info</h3>
+            <div class="info-row">
+              <span class="info-label">Invoice #</span>
+              <span>${invoiceId}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Date</span>
+              <span>${formattedDate}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Payment</span>
+              <span>${order.paymentMethod || "N/A"}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Status</span>
+              <span>${order.status || "Pending"}</span>
+            </div>
+          </div>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 50px;">#</th>
+              <th>Product</th>
+              <th class="text-center" style="width: 80px;">Qty</th>
+              <th class="text-right" style="width: 120px;">Unit Price</th>
+              <th class="text-right" style="width: 120px;">Subtotal</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${items.map((item: any, idx: number) => `
+              <tr>
+                <td>${idx + 1}</td>
+                <td>
+                  <strong>${item.name}</strong>
+                  ${item.color || item.size ? `<br><small style="color: var(--muted-foreground)">Color: ${item.color || 'N/A'} | Size: ${item.size || 'N/A'}</small>` : ''}
+                </td>
+                <td class="text-center">${item.quantity}</td>
+                <td class="text-right">৳${Math.round(item.price)}</td>
+                <td class="text-right">৳${Math.round(item.price * item.quantity)}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+
+        <div class="totals-container">
+          <div class="totals-box">
+            <div class="total-row">
+              <span>Subtotal:</span>
+              <span>৳${Math.round(subtotal)}</span>
+            </div>
+            <div class="total-row">
+              <span>Shipping Charge:</span>
+              <span>৳${Math.round(deliveryCharge)}</span>
+            </div>
+            <div class="total-row" style="${couponDiscount > 0 ? 'color: var(--foreground);' : ''}">
+              <span>Coupon Discount:</span>
+              <span>${couponDiscount > 0 ? `- ৳${Math.round(couponDiscount)}` : '৳0'}</span>
+            </div>
+            <div class="total-row" style="${walletUsed > 0 ? 'color: var(--foreground);' : ''}">
+              <span>Loyalty Discount:</span>
+              <span>${walletUsed > 0 ? `- ৳${Math.round(walletUsed)}` : '৳0'}</span>
+            </div>
+            <div class="total-row grand-total">
+              <span>Total Amount:</span>
+              <span>৳${totalAmount}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
 
   const htmlContent = `
     <!DOCTYPE html>
     <html>
       <head>
         <meta charset="utf-8">
-        <title>Invoice #${invoiceId}</title>
+        <title>Invoice Print</title>
         <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
         <style>
           :root {
@@ -92,6 +185,8 @@ export async function generateInvoicePDF(order: any, settings: any, mode: 'downl
             margin: 0 auto;
             background: var(--background);
             padding: 20px;
+            page-break-inside: avoid;
+            break-inside: avoid;
           }
           .header {
             display: flex;
@@ -222,100 +317,7 @@ export async function generateInvoicePDF(order: any, settings: any, mode: 'downl
         </style>
       </head>
       <body>
-        <div class="invoice-container">
-          <div class="header">
-            <div class="brand-logo-container">
-              <div class="brand-logo">${brandName}</div>
-              <div class="brand-details">
-                ${brandAddress ? `<div>${brandAddress}</div>` : ''}
-                <div>Email: ${brandEmail} | Phone: ${brandPhone}</div>
-              </div>
-            </div>
-            <div>
-              <h1 class="invoice-title">INVOICE</h1>
-            </div>
-          </div>
-
-          <div class="details-grid">
-            <div class="bill-to">
-              <h3>Bill To</h3>
-              <p><strong>${order.shippingAddress?.fullName || "Customer"}</strong></p>
-              ${order.shippingAddress?.street ? `<p>${order.shippingAddress.street}</p>` : ''}
-              <p>${order.shippingAddress?.city || ""}${order.shippingAddress?.zipCode ? `, ${order.shippingAddress.zipCode}` : ""}</p>
-              <p>Phone: ${order.shippingAddress?.phone || ""}</p>
-            </div>
-            <div class="order-info">
-              <h3>Order Info</h3>
-              <div class="info-row">
-                <span class="info-label">Invoice #</span>
-                <span>${invoiceId}</span>
-              </div>
-              <div class="info-row">
-                <span class="info-label">Date</span>
-                <span>${formattedDate}</span>
-              </div>
-              <div class="info-row">
-                <span class="info-label">Payment</span>
-                <span>${order.paymentMethod || "N/A"}</span>
-              </div>
-              <div class="info-row">
-                <span class="info-label">Status</span>
-                <span>${order.status || "Pending"}</span>
-              </div>
-            </div>
-          </div>
-
-          <table>
-            <thead>
-              <tr>
-                <th style="width: 50px;">#</th>
-                <th>Product</th>
-                <th class="text-center" style="width: 80px;">Qty</th>
-                <th class="text-right" style="width: 120px;">Unit Price</th>
-                <th class="text-right" style="width: 120px;">Subtotal</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${items.map((item: any, index: number) => `
-                <tr>
-                  <td>${index + 1}</td>
-                  <td>
-                    <strong>${item.name}</strong>
-                    ${item.color || item.size ? `<br><small style="color: var(--muted-foreground)">Color: ${item.color || 'N/A'} | Size: ${item.size || 'N/A'}</small>` : ''}
-                  </td>
-                  <td class="text-center">${item.quantity}</td>
-                  <td class="text-right">৳${Math.round(item.price)}</td>
-                  <td class="text-right">৳${Math.round(item.price * item.quantity)}</td>
-                </tr>
-              `).join('')}
-            </tbody>
-          </table>
-
-          <div class="totals-container">
-            <div class="totals-box">
-              <div class="total-row">
-                <span>Subtotal:</span>
-                <span>৳${Math.round(subtotal)}</span>
-              </div>
-              <div class="total-row">
-                <span>Shipping Charge:</span>
-                <span>৳${Math.round(deliveryCharge)}</span>
-              </div>
-              <div class="total-row" style="${couponDiscount > 0 ? 'color: var(--foreground);' : ''}">
-                <span>Coupon Discount:</span>
-                <span>${couponDiscount > 0 ? `- ৳${Math.round(couponDiscount)}` : '৳0'}</span>
-              </div>
-              <div class="total-row" style="${walletUsed > 0 ? 'color: var(--foreground);' : ''}">
-                <span>Loyalty Discount:</span>
-                <span>${walletUsed > 0 ? `- ৳${Math.round(walletUsed)}` : '৳0'}</span>
-              </div>
-              <div class="total-row grand-total">
-                <span>Total Amount:</span>
-                <span>৳${totalAmount}</span>
-              </div>
-            </div>
-          </div>
-        </div>
+        ${invoicesHtml}
       </body>
     </html>
   `;

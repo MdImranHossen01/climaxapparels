@@ -184,10 +184,7 @@ function OrdersContent() {
       return;
     }
     toast.info(`Generating ${toPrint.length > 1 ? toPrint.length + ' invoices' : 'invoice'}...`);
-    for (const order of toPrint) {
-      await generateInvoicePDF(order, settings, 'print');
-      if (toPrint.length > 1) await new Promise(r => setTimeout(r, 600));
-    }
+    await generateInvoicePDF(toPrint, settings, 'print');
   };
 
   const handlePrintStickers = async (ids: string[]) => {
@@ -197,9 +194,7 @@ function OrdersContent() {
       return;
     }
     toast.info('Preparing sticker invoice...');
-    for (const order of toPrint) {
-      await printStickerInvoice(order, settings);
-    }
+    await printStickerInvoice(toPrint, settings);
   };
 
   const fetchOrders = async (pageVal = currentPage) => {
