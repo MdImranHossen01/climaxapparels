@@ -81,18 +81,26 @@ export default function SortableSectionItem({
       style={style}
       className={cn(
         "group relative border-b last:border-b-0 transition-all cursor-default",
-        isSelected ? "ring-2 ring-primary ring-inset z-10" : "hover:bg-gray-50/50"
+        section.type === 'order_form'
+          ? ""
+          : isSelected 
+            ? "ring-2 ring-primary ring-inset z-10" 
+            : "hover:bg-gray-50/50"
       )}
       onClick={(e) => {
         e.stopPropagation();
-        onSelect();
+        if (section.type !== 'order_form') {
+          onSelect();
+        }
       }}
     >
       {/* Selection Indicator & Label */}
-      <div className={cn(
-        "absolute left-0 top-0 bottom-0 w-1 transition-all",
-        isSelected ? "bg-primary" : "bg-transparent group-hover:bg-gray-200"
-      )} />
+      {section.type !== 'order_form' && (
+        <div className={cn(
+          "absolute left-0 top-0 bottom-0 w-1 transition-all",
+          isSelected ? "bg-primary" : "bg-transparent group-hover:bg-gray-200"
+        )} />
+      )}
       
       <div className="absolute left-4 top-2 z-20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2">
         <div 
@@ -107,19 +115,21 @@ export default function SortableSectionItem({
         </div>
       </div>
 
-      <div className="absolute right-4 top-2 z-20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
-        <Button 
-          variant="secondary" 
-          size="icon" 
-          className="h-8 w-8 bg-white border shadow-sm hover:text-red-500"
-          onClick={(e) => {
-            e.stopPropagation();
-            onDelete();
-          }}
-        >
-          <Trash2 className="h-4 w-4" />
-        </Button>
-      </div>
+      {section.type !== 'order_form' && (
+        <div className="absolute right-4 top-2 z-20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+          <Button 
+            variant="secondary" 
+            size="icon" 
+            className="h-8 w-8 bg-white border shadow-sm hover:text-red-500"
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete();
+            }}
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
+      )}
 
       {/* Actual Content Preview (Live Render) */}
       <div 

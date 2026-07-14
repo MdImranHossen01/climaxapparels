@@ -125,12 +125,37 @@ export default function LandingPageBuilder({ params }: { params: Promise<{ id: s
       content: JSON.parse(JSON.stringify(template.defaultContent)),
       styles: { paddingTop: 'py-12', paddingBottom: 'py-12' }
     };
-    setSections([...sections, newSection]);
+    
+    let updatedSections = [...sections, newSection];
+    
+    // Auto-add order_form if adding a product showcase and no order form exists
+    if (template.type === 'product_showcase') {
+      const hasOrderForm = sections.some(s => s.type === 'order_form');
+      if (!hasOrderForm) {
+        const orderFormTemplate = SECTION_TEMPLATES.find(t => t.type === 'order_form');
+        if (orderFormTemplate) {
+          const autoOrderForm = {
+            id: uuidv4(),
+            type: 'order_form' as const,
+            content: JSON.parse(JSON.stringify(orderFormTemplate.defaultContent)),
+            styles: { paddingTop: 'py-12', paddingBottom: 'py-12' }
+          };
+          updatedSections.push(autoOrderForm);
+        }
+      }
+    }
+    
+    setSections(updatedSections);
     setSelectedSectionId(newSection.id);
     toast.success(`${template.label} added!`);
   };
 
   const deleteSection = (id: string) => {
+    const targetSection = sections.find(s => s.id === id);
+    if (targetSection?.type === 'order_form') {
+      toast.error('The Order Form is fixed and cannot be removed');
+      return;
+    }
     setSections(sections.filter(s => s.id !== id));
     if (selectedSectionId === id) setSelectedSectionId(null);
     toast.info('Section removed');
@@ -216,7 +241,7 @@ export default function LandingPageBuilder({ params }: { params: Promise<{ id: s
           <div>
             <h3 className="text-xs font-black uppercase tracking-widest text-gray-400 mb-4">Add Sections</h3>
             <div className="grid grid-cols-1 gap-3">
-              {SECTION_TEMPLATES.map((template) => (
+              {SECTION_TEMPLATES.filter((t) => t.type !== 'order_form').map((template) => (
                 <button
                   key={template.type}
                   onClick={() => addSection(template)}
