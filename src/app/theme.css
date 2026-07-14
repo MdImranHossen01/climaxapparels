@@ -5,6 +5,30 @@
 :root {
   --active-font-sans: var(--font-inter);
   --active-font-logo: var(--font-orbitron);
+
+  --font-inter: "Inter", sans-serif;
+  --font-poppins: "Poppins", sans-serif;
+  --font-roboto: "Roboto", sans-serif;
+  --font-montserrat: "Montserrat", sans-serif;
+  --font-playfair: "Playfair Display", serif;
+  --font-lora: "Lora", serif;
+  --font-outfit: "Outfit", sans-serif;
+  --font-urbanist: "Urbanist", sans-serif;
+  --font-manrope: "Manrope", sans-serif;
+  --font-open-sans: "Open Sans", sans-serif;
+  --font-lato: "Lato", sans-serif;
+  --font-oswald: "Oswald", sans-serif;
+  --font-raleway: "Raleway", sans-serif;
+  --font-nunito: "Nunito", sans-serif;
+  --font-ubuntu: "Ubuntu", sans-serif;
+  --font-merriweather: "Merriweather", serif;
+  --font-kanit: "Kanit", sans-serif;
+  --font-quicksand: "Quicksand", sans-serif;
+  --font-josefin-sans: "Josefin Sans", sans-serif;
+  --font-syne: "Syne", sans-serif;
+  --font-space-grotesk: "Space Grotesk", sans-serif;
+  --font-orbitron: "Orbitron", sans-serif;
+  --font-jost: "Jost", sans-serif;
 }
 
 /* Font Selection Classes */

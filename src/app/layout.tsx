@@ -1,30 +1,7 @@
-﻿import type { Metadata } from "next";
+import type { Metadata } from "next";
 import {
   Geist,
-  Geist_Mono,
-  Inter,
-  Poppins,
-  Roboto,
-  Montserrat,
-  Playfair_Display,
-  Outfit,
-  Lora,
-  Manrope,
-  Urbanist,
-  Orbitron,
-  Open_Sans,
-  Lato,
-  Oswald,
-  Raleway,
-  Nunito,
-  Ubuntu,
-  Merriweather,
-  Kanit,
-  Quicksand,
-  Josefin_Sans,
-  Syne,
-  Space_Grotesk,
-  Jost
+  Geist_Mono
 } from "next/font/google";
 import { Suspense } from "react";
 import { Toaster } from "sonner";
@@ -53,127 +30,49 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
-});
+const googleFontMap: Record<string, { family: string; weights?: string }> = {
+  inter: { family: "Inter", weights: "300..800" },
+  poppins: { family: "Poppins", weights: "300..800" },
+  roboto: { family: "Roboto", weights: "300;400;500;700" },
+  montserrat: { family: "Montserrat", weights: "300..800" },
+  playfair: { family: "Playfair Display", weights: "400..700" },
+  lora: { family: "Lora", weights: "400..700" },
+  outfit: { family: "Outfit", weights: "300..800" },
+  urbanist: { family: "Urbanist", weights: "300..800" },
+  manrope: { family: "Manrope", weights: "300..800" },
+  opensans: { family: "Open Sans", weights: "300..800" },
+  lato: { family: "Lato", weights: "300;400;700" },
+  oswald: { family: "Oswald", weights: "300..700" },
+  raleway: { family: "Raleway", weights: "300..700" },
+  nunito: { family: "Nunito", weights: "300..700" },
+  ubuntu: { family: "Ubuntu", weights: "300;400;500;700" },
+  merriweather: { family: "Merriweather", weights: "300;400;700" },
+  kanit: { family: "Kanit", weights: "300;400;500;700" },
+  quicksand: { family: "Quicksand", weights: "300..700" },
+  josefinsans: { family: "Josefin Sans", weights: "100..700" },
+  syne: { family: "Syne", weights: "400..800" },
+  spacegrotesk: { family: "Space Grotesk", weights: "300..700" },
+  orbitron: { family: "Orbitron", weights: "400..900" },
+  jost: { family: "Jost", weights: "300..800" },
+};
 
-const poppins = Poppins({
-  variable: "--font-poppins",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-});
-
-const roboto = Roboto({
-  variable: "--font-roboto",
-  subsets: ["latin"],
-  weight: ["400", "500", "700"],
-});
-
-const montserrat = Montserrat({
-  variable: "--font-montserrat",
-  subsets: ["latin"],
-});
-
-const playfair = Playfair_Display({
-  variable: "--font-playfair",
-  subsets: ["latin"],
-});
-
-const outfit = Outfit({
-  variable: "--font-outfit",
-  subsets: ["latin"],
-});
-
-const lora = Lora({
-  variable: "--font-lora",
-  subsets: ["latin"],
-});
-
-const manrope = Manrope({
-  variable: "--font-manrope",
-  subsets: ["latin"],
-});
-const urbanist = Urbanist({
-  variable: "--font-urbanist",
-  subsets: ["latin"],
-});
-
-const orbitron = Orbitron({
-  variable: "--font-orbitron",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800", "900"],
-});
-const openSans = Open_Sans({
-  variable: "--font-open-sans",
-  subsets: ["latin"],
-});
-
-const lato = Lato({
-  variable: "--font-lato",
-  subsets: ["latin"],
-  weight: ["400", "700"],
-});
-
-const oswald = Oswald({
-  variable: "--font-oswald",
-  subsets: ["latin"],
-  weight: ["200", "300", "400", "500", "600", "700"],
-});
-
-const raleway = Raleway({
-  variable: "--font-raleway",
-  subsets: ["latin"],
-});
-
-const nunito = Nunito({
-  variable: "--font-nunito",
-  subsets: ["latin"],
-});
-
-const ubuntu = Ubuntu({
-  variable: "--font-ubuntu",
-  subsets: ["latin"],
-  weight: ["400", "500", "700"],
-});
-
-const merriweather = Merriweather({
-  variable: "--font-merriweather",
-  subsets: ["latin"],
-  weight: ["400", "700"],
-});
-
-const kanit = Kanit({
-  variable: "--font-kanit",
-  subsets: ["latin"],
-  weight: ["400", "700"],
-});
-
-const quicksand = Quicksand({
-  variable: "--font-quicksand",
-  subsets: ["latin"],
-});
-
-const josefinSans = Josefin_Sans({
-  variable: "--font-josefin-sans",
-  subsets: ["latin"],
-  weight: ["100", "200", "300", "400", "500", "600", "700"],
-});
-
-const syne = Syne({
-  variable: "--font-syne",
-  subsets: ["latin"],
-});
-
-const spaceGrotesk = Space_Grotesk({
-  variable: "--font-space-grotesk",
-  subsets: ["latin"],
-});
-
-const jost = Jost({
-  variable: "--font-jost",
-  subsets: ["latin"],
-});
+function getGoogleFontsUrl(fonts: string[]) {
+  const uniqueFamiliesMap = new Map<string, string>();
+  for (const fontKey of fonts) {
+    if (!fontKey) continue;
+    const key = fontKey.toLowerCase().replace(/[-_\s]/g, '');
+    const mapped = googleFontMap[key];
+    if (mapped) {
+      uniqueFamiliesMap.set(mapped.family, mapped.weights ? `:wght@${mapped.weights}` : '');
+    }
+  }
+  if (uniqueFamiliesMap.size === 0) return null;
+  const families: string[] = [];
+  uniqueFamiliesMap.forEach((weights, family) => {
+    families.push(`family=${encodeURIComponent(family)}${weights}`);
+  });
+  return `https://fonts.googleapis.com/css2?${families.join('&')}&display=swap`;
+}
 
 export const dynamic = 'force-dynamic';
 
@@ -269,9 +168,14 @@ export default async function RootLayout({
   const fontClass = `font-${bodyFont}`;
   const logoFontClass = `logo-font-${logoFont}`;
 
+  const googleFontsUrl = getGoogleFontsUrl([bodyFont, logoFont]);
+
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} ${poppins.variable} ${roboto.variable} ${montserrat.variable} ${playfair.variable} ${outfit.variable} ${lora.variable} ${manrope.variable} ${urbanist.variable} ${orbitron.variable} ${openSans.variable} ${lato.variable} ${oswald.variable} ${raleway.variable} ${nunito.variable} ${ubuntu.variable} ${merriweather.variable} ${kanit.variable} ${quicksand.variable} ${josefinSans.variable} ${syne.variable} ${spaceGrotesk.variable} ${jost.variable} ${themeClass} ${fontClass} ${logoFontClass}`} suppressHydrationWarning>
+    <html lang="en" className={`${geistSans.variable} ${geistMono.variable} ${themeClass} ${fontClass} ${logoFontClass}`} suppressHydrationWarning>
       <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        {googleFontsUrl && <link rel="stylesheet" href={googleFontsUrl} />}
         <link rel="preload" as="image" href="/assets/login_banner_v2.webp" />
         <link rel="preload" as="image" href="/assets/register_banner_v2.webp" />
         <link rel="preload" as="image" href="/assets/forgetpassrod.webp" />
