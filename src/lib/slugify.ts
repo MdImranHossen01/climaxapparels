@@ -21,4 +21,10 @@ export const slugify = (text: string): string => {
   .slice(0, 100)               // Limit length
   .replace(/^-+|-+$/g, '');    // Trim dashes from start and end
 };
-
+export const sanitizeSlugInput = (val: string): string => {
+  return val
+    .replace(/\s+/g, '-')
+    .replace(/[^a-zA-Z0-9-]/g, '')
+    .replace(/-+/g, '-')
+    .toLowerCase();
+};

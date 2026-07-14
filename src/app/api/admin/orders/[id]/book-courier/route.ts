@@ -14,7 +14,7 @@ export async function POST(
 ) {
   try {
     const session = await auth();
-    if (!session || !(['admin', 'super_admin'].includes((session?.user as any)?.role))) {
+    if (!session || !(['admin', 'super_admin', 'manager'].includes((session?.user as any)?.role))) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
@@ -24,17 +24,53 @@ export async function POST(
     // Connect to DB and fetch order and settings
     await connectToDatabase();
     
-    const order = await Order.findOne({ _id: id }).populate('user');
-    const settings = await GlobalSettings.findOne(); // Fetch the singleton settings
-
-    if (!order) {
+    // Check if order exists at all without locking
+    const exists = await Order.findById(id);
+    if (!exists) {
       return NextResponse.json({ message: 'Order not found' }, { status: 404 });
     }
 
-    // Guard against double booking
-    if (order.shippingDetails?.trackingId || order.shippingDetails?.consignmentId) {
-      return NextResponse.json({ message: 'Courier already booked for this order' }, { status: 409 });
+    // Atomically claim the order to prevent concurrent booking requests
+    const order = await Order.findOneAndUpdate(
+      {
+        _id: id,
+        $and: [
+          {
+            $or: [
+              { 'shippingDetails.trackingId': { $exists: false } },
+              { 'shippingDetails.trackingId': null },
+              { 'shippingDetails.trackingId': '' }
+            ]
+          },
+          {
+            $or: [
+              { 'shippingDetails.consignmentId': { $exists: false } },
+              { 'shippingDetails.consignmentId': null },
+              { 'shippingDetails.consignmentId': '' }
+            ]
+          },
+          {
+            $or: [
+              { 'shippingDetails.courierStatus': { $exists: false } },
+              { 'shippingDetails.courierStatus': null },
+              { 'shippingDetails.courierStatus': { $ne: 'BOOKING_IN_PROGRESS' } }
+            ]
+          }
+        ]
+      },
+      {
+        $set: {
+          'shippingDetails.courierStatus': 'BOOKING_IN_PROGRESS'
+        }
+      },
+      { new: true }
+    ).populate('user');
+
+    if (!order) {
+      return NextResponse.json({ message: 'Courier already booked or booking in progress for this order' }, { status: 409 });
     }
+
+    const settings = await GlobalSettings.findOne(); // Fetch the singleton settings
 
     if (!settings || !settings.courierConfig || settings.courierConfig.activeProvider === 'none') {
       return NextResponse.json({ message: 'Courier service not configured' }, { status: 400 });
@@ -110,6 +146,11 @@ export async function POST(
         });
       } else {
         console.error('[Courier Booking] Booking Failed:', result.message);
+        // Release the claim on failure
+        await Order.updateOne(
+          { _id: id },
+          { $unset: { 'shippingDetails.courierStatus': '' } }
+        );
         // Change to 400 so the UI can show the actual error message
         return NextResponse.json({ 
             message: result.message || 'Courier booking failed',
@@ -118,11 +159,25 @@ export async function POST(
       }
     }
 
+    // Release claim if no provider initialized
+    await Order.updateOne(
+      { _id: id },
+      { $unset: { 'shippingDetails.courierStatus': '' } }
+    );
     console.error('[Courier Booking] No provider initialized. Active:', activeProvider);
     return NextResponse.json({ message: 'Courier provider not properly configured or keys missing' }, { status: 400 });
 
   } catch (error: any) {
     console.error('Courier Booking Exception:', error);
+    try {
+      const { id } = await params;
+      await Order.updateOne(
+        { _id: id },
+        { $unset: { 'shippingDetails.courierStatus': '' } }
+      );
+    } catch (e) {
+      console.error('Failed to release booking claim:', e);
+    }
     return NextResponse.json({ 
       message: 'Internal server error during courier booking',
       debug: error.message 

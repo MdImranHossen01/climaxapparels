@@ -7,7 +7,7 @@ import mongoose from 'mongoose';
 // Auth helper
 async function authorizeAdmin() {
   const session = await auth();
-  if (!session || !session.user || !(['admin', 'super_admin'].includes((session.user as any)?.role))) {
+  if (!session || !session.user || !(['admin', 'super_admin', 'manager'].includes((session.user as any)?.role))) {
     return false;
   }
   return true;

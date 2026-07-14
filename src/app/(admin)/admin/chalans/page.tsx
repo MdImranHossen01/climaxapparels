@@ -520,14 +520,19 @@ export default function ClientChalansPage() {
             {/* Product Picker */}
             <div className="flex items-center justify-between">
               <Label className="text-lg font-semibold">Items List</Label>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => setProductPickerOpen(true)}
-              >
-                <Plus className="mr-1 h-3.5 w-3.5" /> Select Products
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setProductPickerOpen(true)}
+                >
+                  <Plus className="mr-1 h-3.5 w-3.5" /> Select Products
+                </Button>
+                <Button type="button" variant="outline" size="sm" onClick={handleAddItemRow} className="font-bold">
+                  <Plus className="h-3 w-3 mr-1" /> Add Custom Item
+                </Button>
+              </div>
             </div>
 
             {/* Manual item entries */}
@@ -563,9 +568,6 @@ export default function ClientChalansPage() {
                   </Button>
                 </div>
               ))}
-              <Button type="button" variant="outline" size="sm" onClick={handleAddItemRow}>
-                <Plus className="mr-1 h-3 w-3" /> Add Custom Item
-              </Button>
             </div>
 
             <DialogFooter>

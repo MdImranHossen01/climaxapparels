@@ -37,7 +37,7 @@ import {
   RadioGroup, 
   RadioGroupItem 
 } from '@/components/ui/radio-group';
-import { slugify } from '@/lib/slugify';
+import { slugify, sanitizeSlugInput } from '@/lib/slugify';
 
 const NovelEditor = dynamic(() => import('@/components/editor/NovelEditor'), {
   ssr: false,
@@ -354,7 +354,13 @@ export function ProductForm({ initialData }: ProductFormProps) {
                       <FormItem>
                         <FormLabel>Slug</FormLabel>
                         <FormControl>
-                          <Input placeholder="product-slug" {...field} />
+                          <Input 
+                            placeholder="product-slug" 
+                            {...field} 
+                            onChange={(e) => {
+                              field.onChange(sanitizeSlugInput(e.target.value));
+                            }}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>

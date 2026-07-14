@@ -45,7 +45,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import Swal from 'sweetalert2';
-import { slugify } from '@/lib/slugify';
+import { slugify, sanitizeSlugInput } from '@/lib/slugify';
 
 const categorySchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
@@ -230,7 +230,13 @@ export default function CategoriesPage() {
                       <FormItem>
                         <FormLabel>Slug</FormLabel>
                         <FormControl>
-                          <Input placeholder="category-slug" {...field} />
+                          <Input 
+                            placeholder="category-slug" 
+                            {...field} 
+                            onChange={(e) => {
+                              field.onChange(sanitizeSlugInput(e.target.value));
+                            }}
+                          />
                         </FormControl>
                         <FormDescription>
                           Unique URL-friendly name.

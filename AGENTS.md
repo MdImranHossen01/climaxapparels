@@ -28,6 +28,6 @@ This project is a multi-version e-commerce platform (not a multi-tenant project)
 ## 4. System Design Page Constraints
 - **Preserve Functionality:** All existing functionalities of the System Design page (`/admin/system-design`) must remain completely unchanged and preserved in future updates.
 - **Auto Super Admin Rule:** The email address `imranshuvo101@gmail.com` must be automatically registered/configured as `super_admin` in the system, and this rule/configuration must never be modified or removed.
-- **Admin Assignment Workflow:** Only the `super_admin` is permitted to assign the `admin` role to users using only their email address from the user management page. This functionality must be preserved.
+- **Admin Assignment Workflow:** Both `admin` and `super_admin` are permitted to assign the `admin` role to users using only their email address from the user management page.
 - **Project Expiration Setting:** The `super_admin` must be able to set the project's expiration date from the System Design page (`/admin/system-design`), and this functionality must remain fully functional.
 <!-- END:nextjs-agent-rules -->

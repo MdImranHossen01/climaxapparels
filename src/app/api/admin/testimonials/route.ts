@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const session = await auth();
-    if (!session || (session.user as any).role !== 'admin' && (session.user as any).role !== 'super_admin') {
+    if (!session || (session.user as any).role !== 'admin' && (session.user as any).role !== 'super_admin' && (session.user as any).role !== 'manager') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
 export async function PUT(req: NextRequest) {
   try {
     const session = await auth();
-    if (!session || (session.user as any).role !== 'admin' && (session.user as any).role !== 'super_admin') {
+    if (!session || (session.user as any).role !== 'admin' && (session.user as any).role !== 'super_admin' && (session.user as any).role !== 'manager') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -67,7 +67,7 @@ export async function PUT(req: NextRequest) {
 export async function DELETE(req: NextRequest) {
   try {
     const session = await auth();
-    if (!session || (session.user as any).role !== 'admin' && (session.user as any).role !== 'super_admin') {
+    if (!session || (session.user as any).role !== 'admin' && (session.user as any).role !== 'super_admin' && (session.user as any).role !== 'manager') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

@@ -78,8 +78,8 @@ export async function POST(req: NextRequest) {
     const session = await auth();
     const currentUserRole = (session?.user as any)?.role;
     
-    // Only super_admin can manually assign admins by email
-    if (!session || currentUserRole !== 'super_admin') {
+    // Both admin and super_admin can manually assign admins by email
+    if (!session || (currentUserRole !== 'super_admin' && currentUserRole !== 'admin')) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
@@ -126,7 +126,7 @@ export async function PATCH(req: NextRequest) {
 
     const { userId, role } = await req.json();
 
-    if (!userId || !['user', 'admin'].includes(role)) {
+    if (!userId || !['user', 'admin', 'manager'].includes(role)) {
       return NextResponse.json({ message: 'Invalid data' }, { status: 400 });
     }
 

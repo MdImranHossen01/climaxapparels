@@ -38,7 +38,7 @@ export async function PUT(
     const { slug } = await params;
     const session = await auth();
 
-    if (!session || !session.user || !(['admin', 'super_admin'].includes((session.user as any)?.role))) {
+    if (!session || !session.user || !(['admin', 'super_admin', 'manager'].includes((session.user as any)?.role))) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
@@ -90,7 +90,7 @@ export async function DELETE(
     const { slug } = await params;
     const authSession = await auth();
 
-    if (!authSession || !authSession.user || !(['admin', 'super_admin'].includes((authSession.user as any)?.role))) {
+    if (!authSession || !authSession.user || !(['admin', 'super_admin', 'manager'].includes((authSession.user as any)?.role))) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 

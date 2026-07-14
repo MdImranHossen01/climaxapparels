@@ -145,38 +145,55 @@ function OrdersContent() {
     cancelled: 0
   });
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('All');
+  const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchParams.get('search') || '');
+  const [statusFilter, setStatusFilter] = useState(searchParams.get('status') || 'All');
   const [dateFilter, setDateFilter] = useState({
-    from: '',
-    to: '',
+    from: searchParams.get('from') || '',
+    to: searchParams.get('to') || '',
   });
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
-
+ 
   // Selection state
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [bulkActionLoading, setBulkActionLoading] = useState(false);
   const [settings, setSettings] = useState<any>(null);
-
+ 
   // Debounce search term
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearchTerm(searchTerm);
+      setCurrentPage(1);
     }, 500);
     return () => clearTimeout(handler);
   }, [searchTerm]);
-
-  // Reset page when filters change
+ 
+  // Sync state to URL search parameters when filters change
   useEffect(() => {
+    const params = new URLSearchParams();
     if (currentPage > 1) {
-      setCurrentPage(1);
-      const params = new URLSearchParams(searchParams.toString());
-      params.delete('page');
-      router.push(`/admin/orders?${params.toString()}`);
+      params.set('page', currentPage.toString());
     }
-  }, [debouncedSearchTerm, statusFilter, dateFilter.from, dateFilter.to]);
+    if (statusFilter !== 'All') {
+      params.set('status', statusFilter);
+    }
+    if (debouncedSearchTerm) {
+      params.set('search', debouncedSearchTerm);
+    }
+    if (dateFilter.from) {
+      params.set('from', dateFilter.from);
+    }
+    if (dateFilter.to) {
+      params.set('to', dateFilter.to);
+    }
+
+    const currentQuery = searchParams.toString();
+    const newQuery = params.toString();
+    if (currentQuery !== newQuery) {
+      router.push(`/admin/orders?${newQuery}`);
+    }
+  }, [currentPage, statusFilter, debouncedSearchTerm, dateFilter.from, dateFilter.to]);
 
   const handleDownloadInvoice = async (order: any) => {
     try {
@@ -251,6 +268,19 @@ function OrdersContent() {
     const pageFromParams = Math.max(1, parseInt(searchParams.get('page') || '1'));
     if (pageFromParams !== currentPage) {
       setCurrentPage(pageFromParams);
+    }
+    const statusFromParams = searchParams.get('status') || 'All';
+    if (statusFromParams !== statusFilter) {
+      setStatusFilter(statusFromParams);
+    }
+    const searchFromParams = searchParams.get('search') || '';
+    if (searchFromParams !== searchTerm) {
+      setSearchTerm(searchFromParams);
+    }
+    const fromFromParams = searchParams.get('from') || '';
+    const toFromParams = searchParams.get('to') || '';
+    if (fromFromParams !== dateFilter.from || toFromParams !== dateFilter.to) {
+      setDateFilter({ from: fromFromParams, to: toFromParams });
     }
   }, [searchParams]);
 
@@ -600,7 +630,10 @@ function OrdersContent() {
                 ].map((status) => (
                   <DropdownMenuItem
                     key={status.value}
-                    onClick={() => setStatusFilter(status.value)}
+                    onClick={() => {
+                      setStatusFilter(status.value);
+                      setCurrentPage(1);
+                    }}
                     className={statusFilter === status.value ? "bg-accent font-bold" : ""}
                   >
                     <div className="flex items-center justify-between w-full text-xs">
@@ -621,14 +654,20 @@ function OrdersContent() {
             type="date"
             className="h-8 w-full md:w-36 border-none bg-transparent focus-visible:ring-0"
             value={dateFilter.from}
-            onChange={(e) => setDateFilter(prev => ({ ...prev, from: e.target.value }))}
+            onChange={(e) => {
+              setDateFilter(prev => ({ ...prev, from: e.target.value }));
+              setCurrentPage(1);
+            }}
           />
           <span className="text-muted-foreground text-xs">to</span>
           <Input
             type="date"
             className="h-8 w-full md:w-36 border-none bg-transparent focus-visible:ring-0"
             value={dateFilter.to}
-            onChange={(e) => setDateFilter(prev => ({ ...prev, to: e.target.value }))}
+            onChange={(e) => {
+              setDateFilter(prev => ({ ...prev, to: e.target.value }));
+              setCurrentPage(1);
+            }}
           />
         </div>
 
@@ -640,6 +679,7 @@ function OrdersContent() {
               setStatusFilter('All');
               setDateFilter({ from: '', to: '' });
               setSearchTerm('');
+              setCurrentPage(1);
             }}
             className="text-xs text-muted-foreground hover:text-primary shrink-0"
           >
@@ -664,7 +704,10 @@ function OrdersContent() {
           return (
             <button
               key={status.value}
-              onClick={() => setStatusFilter(status.value)}
+              onClick={() => {
+                setStatusFilter(status.value);
+                setCurrentPage(1);
+              }}
               className={`w-full py-2 text-xs font-semibold rounded-md transition-all duration-200 text-center truncate flex items-center justify-center gap-1.5 ${
                 isActive
                   ? 'bg-primary text-primary-foreground shadow-sm'

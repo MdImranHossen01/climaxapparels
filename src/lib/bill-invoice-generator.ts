@@ -1,5 +1,55 @@
 import { format, isValid } from 'date-fns';
 
+export function numberToWords(num: number): string {
+  if (num === 0) return 'Zero';
+  
+  const a = [
+    '', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten',
+    'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'
+  ];
+  const b = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+  
+  const convertBengaliStyle = (n: number): string => {
+    if (n < 0) return 'Minus ' + convertBengaliStyle(Math.abs(n));
+    let words = '';
+    
+    if (n >= 10000000) {
+      words += convertBengaliStyle(Math.floor(n / 10000000)) + ' Crore ';
+      n %= 10000000;
+    }
+    
+    if (n >= 100000) {
+      words += convertBengaliStyle(Math.floor(n / 100000)) + ' Lakh ';
+      n %= 100000;
+    }
+    
+    if (n >= 1000) {
+      words += convertBengaliStyle(Math.floor(n / 1000)) + ' Thousand ';
+      n %= 1000;
+    }
+    
+    if (n >= 100) {
+      words += convertBengaliStyle(Math.floor(n / 100)) + ' Hundred ';
+      n %= 100;
+    }
+    
+    if (n > 0) {
+      if (n < 20) {
+        words += a[n];
+      } else {
+        words += b[Math.floor(n / 10)];
+        if (n % 10 > 0) {
+          words += ' ' + a[n % 10];
+        }
+      }
+    }
+    
+    return words.trim();
+  };
+
+  return convertBengaliStyle(num).trim();
+}
+
 export async function generateBillPDF(bill: any, settings: any, mode: 'download' | 'print' = 'download') {
   const brandName = settings?.brandName || "Climax Apparels";
   const brandEmail = settings?.contact?.email || "";
@@ -62,14 +112,16 @@ export async function generateBillPDF(bill: any, settings: any, mode: 'download'
   const items = Array.isArray(bill.items) ? bill.items : [];
 
   let footerThankYou = `Thank you for doing business with ${brandName}!`;
-  let footerGenerated = `This is a computer generated bill and does not require a physical signature.`;
+  let footerGenerated = `This is a computer generated bill, no signature required.`;
   if (docType === 'offer') {
     footerThankYou = `Thank you for requesting a quotation from ${brandName}!`;
-    footerGenerated = `This is a computer generated quotation and does not require a physical signature.`;
+    footerGenerated = `This is a computer generated offer, no signature required.`;
   } else if (docType === 'chalan') {
     footerThankYou = `Thank you for choosing ${brandName}!`;
-    footerGenerated = `This is a computer generated delivery challan and does not require a physical signature.`;
+    footerGenerated = `This is a computer generated delivery challan, no signature required.`;
   }
+
+  const amountToConvert = docType === 'bill' ? Math.round((bill.gTotal ?? bill.total) ?? 0) : Math.round(bill.total || 0);
 
   const htmlContent = `
     <!DOCTYPE html>
@@ -106,6 +158,9 @@ export async function generateBillPDF(bill: any, settings: any, mode: 'download'
             margin: 0 auto;
             background: var(--background);
             padding: 20px;
+            min-height: 260mm;
+            display: flex;
+            flex-direction: column;
           }
           .header {
             display: flex;
@@ -144,10 +199,12 @@ export async function generateBillPDF(bill: any, settings: any, mode: 'download'
             margin: 0;
           }
           .details-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
+            display: flex;
+            justify-content: space-between;
             margin-bottom: 30px;
+          }
+          .bill-to, .bill-info {
+            width: 48%;
           }
           .bill-to h3, .bill-info h3 {
             font-size: 12px;
@@ -172,6 +229,17 @@ export async function generateBillPDF(bill: any, settings: any, mode: 'download'
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 30px;
+            page-break-inside: auto;
+          }
+          tr {
+            page-break-inside: avoid;
+            page-break-after: auto;
+          }
+          thead {
+            display: table-header-group;
+          }
+          tfoot {
+            display: table-footer-group;
           }
           th {
             background-color: var(--primary);
@@ -194,7 +262,7 @@ export async function generateBillPDF(bill: any, settings: any, mode: 'download'
           .totals-container {
             display: flex;
             justify-content: flex-end;
-            margin-bottom: 40px;
+            margin-bottom: 20px;
           }
           .totals-box {
             width: 320px;
@@ -221,19 +289,22 @@ export async function generateBillPDF(bill: any, settings: any, mode: 'download'
             color: var(--muted-foreground);
             border-top: 1px solid var(--border);
             padding-top: 20px;
-            margin-top: 40px;
+            margin-top: auto;
           }
           @media print {
             body {
               padding: 0;
+              margin: 0;
             }
             .bill-container {
               padding: 0;
               max-width: 100%;
+              width: 100%;
+              min-height: 277mm;
             }
             @page {
-              size: A4;
-              margin: 15mm;
+              size: A4 portrait;
+              margin: 10mm;
             }
           }
         </style>
@@ -357,14 +428,23 @@ export async function generateBillPDF(bill: any, settings: any, mode: 'download'
                     <span>Paid Amount:</span>
                     <span>৳${Math.round(bill.cashIn || 0)}</span>
                   </div>
-                  <div class="total-row highlight" style="${bill.currentBillDue > 0 ? 'color: var(--destructive);' : 'color: var(--primary);'}">
+                  <div class="total-row highlight" style="${bill.currentBillDue > 0 ? 'color: #ef4444;' : 'color: var(--primary);'}">
                     <span>Remaining Due:</span>
                     <span>৳${Math.round(bill.currentBillDue || 0)}</span>
                   </div>
                 ` : ''}
               </div>
             </div>
+            
+            <div style="margin-top: 15px; margin-bottom: 25px; font-size: 13px; border-top: 1px dashed var(--border); padding-top: 10px;">
+              <strong>Amount in Words:</strong> ${numberToWords(amountToConvert)} Taka Only
+            </div>
           ` : ''}
+
+          <div class="footer">
+            <p style="margin: 5px 0; font-weight: 600;">${footerThankYou}</p>
+            <p style="margin: 5px 0; font-style: italic;">${footerGenerated}</p>
+          </div>
         </div>
       </body>
     </html>
@@ -375,22 +455,19 @@ export async function generateBillPDF(bill: any, settings: any, mode: 'download'
     printWindow.document.write(htmlContent);
     printWindow.document.close();
     
-    printWindow.onload = () => {
+    let hasPrinted = false;
+    const triggerPrint = () => {
+      if (hasPrinted) return;
+      hasPrinted = true;
       printWindow.focus();
       printWindow.print();
       if (mode === 'print') {
         printWindow.close();
       }
     };
+
+    printWindow.onload = triggerPrint;
     
-    setTimeout(() => {
-      if (printWindow.document.readyState === 'complete') {
-        printWindow.focus();
-        printWindow.print();
-        if (mode === 'print') {
-          printWindow.close();
-        }
-      }
-    }, 1000);
+    setTimeout(triggerPrint, 800);
   }
 }

@@ -247,7 +247,7 @@ function UsersContent() {
           <p className="text-muted-foreground text-sm font-medium">Manage and view all registered customers and staff.</p>
         </div>
         <div className="flex items-center gap-3">
-          {isSuperAdmin && (
+          {(isSuperAdmin || (session?.user as any)?.role === 'admin') && (
             <Button 
               onClick={() => setIsAssignAdminOpen(true)}
               className="bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-full px-6 h-11 shadow-lg shadow-blue-200 border-none transition-all hover:scale-105 active:scale-95"
@@ -339,10 +339,11 @@ function UsersContent() {
                   </TableCell>
                   <TableCell>
                     <Badge 
-                      variant={user.role === 'admin' ? 'default' : 'outline'}
+                      variant={user.role === 'admin' || user.role === 'manager' ? 'default' : 'outline'}
                       className={`
                         capitalize px-3 py-0.5 rounded-full font-bold text-[10px] tracking-wider
                         ${user.role === 'admin' ? 'bg-blue-600 hover:bg-blue-700' : ''}
+                        ${user.role === 'manager' ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : ''}
                       `}
                     >
                       {user.role}
@@ -375,14 +376,25 @@ function UsersContent() {
                         <DropdownMenuGroup>
                           <DropdownMenuLabel className="text-[10px] font-black uppercase text-muted-foreground px-2 py-1.5">Management</DropdownMenuLabel>
                           
-                          {user.role === 'user' ? (
+                          {user.role !== 'admin' && (
                             <DropdownMenuItem 
                               onClick={() => handleUpdateRole(user._id, 'admin')}
                               className="cursor-pointer text-blue-600 font-bold"
                             >
                               <ShieldCheck className="mr-2 h-4 w-4" /> Make Admin
                             </DropdownMenuItem>
-                          ) : (
+                          )}
+
+                          {user.role !== 'manager' && (
+                            <DropdownMenuItem 
+                              onClick={() => handleUpdateRole(user._id, 'manager')}
+                              className="cursor-pointer text-primary font-bold"
+                            >
+                              <UserCog className="mr-2 h-4 w-4" /> Make Manager
+                            </DropdownMenuItem>
+                          )}
+
+                          {user.role !== 'user' && (
                             <DropdownMenuItem 
                               onClick={() => handleUpdateRole(user._id, 'user')}
                               className="cursor-pointer text-slate-600 font-bold"

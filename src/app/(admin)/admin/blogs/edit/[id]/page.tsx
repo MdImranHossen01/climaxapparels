@@ -110,7 +110,11 @@ export default function EditBlogPage() {
     }
 
     setFormData(prev => {
-      const newData = { ...prev, [name]: processedValue };
+      let finalValue = processedValue;
+      if (name === 'slug') {
+        finalValue = slugify(processedValue);
+      }
+      const newData = { ...prev, [name]: finalValue };
       
       // Auto-generate slug and meta title IF it was empty or matching before
       // Note: we usually don't auto-update on edit if the user has already customized it
