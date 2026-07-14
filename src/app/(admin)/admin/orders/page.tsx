@@ -134,6 +134,16 @@ function OrdersContent() {
   const [orders, setOrders] = useState<any[]>([]);
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
+  const [statusCounts, setStatusCounts] = useState<any>({
+    all: 0,
+    placed: 0,
+    confirmed: 0,
+    paid: 0,
+    ready: 0,
+    released: 0,
+    delivered: 0,
+    cancelled: 0
+  });
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
@@ -217,6 +227,9 @@ function OrdersContent() {
       setOrders(data.orders || []);
       setTotalPages(data.totalPages || 1);
       setTotalCount(data.totalCount || 0);
+      if (data.counts) {
+        setStatusCounts(data.counts);
+      }
 
       // Also fetch settings for the invoice generator
       const settingsRes = await fetch('/api/settings');
@@ -576,27 +589,25 @@ function OrdersContent() {
                 <DropdownMenuLabel>Filter by Status</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 {[
-                  'All',
-                  'Order Placed',
-                  'Confirmed',
-                  'Paid',
-                  'Ready for Delivery',
-                  'Released for Delivery',
-                  'Delivered',
-                  'Cancelled'
+                  { label: 'All', value: 'All', count: statusCounts.all },
+                  { label: 'Placed', value: 'Order Placed', count: statusCounts.placed },
+                  { label: 'Confirmed', value: 'Confirmed', count: statusCounts.confirmed },
+                  { label: 'Paid', value: 'Paid', count: statusCounts.paid },
+                  { label: 'Ready', value: 'Ready for Delivery', count: statusCounts.ready },
+                  { label: 'Released', value: 'Released for Delivery', count: statusCounts.released },
+                  { label: 'Delivered', value: 'Delivered', count: statusCounts.delivered },
+                  { label: 'Cancelled', value: 'Cancelled', count: statusCounts.cancelled }
                 ].map((status) => (
                   <DropdownMenuItem
-                    key={status}
-                    onClick={() => setStatusFilter(status)}
-                    className={statusFilter === status ? "bg-accent font-bold" : ""}
+                    key={status.value}
+                    onClick={() => setStatusFilter(status.value)}
+                    className={statusFilter === status.value ? "bg-accent font-bold" : ""}
                   >
-                    <div className="flex items-center justify-between w-full">
-                      <span>{status}</span>
-                      {status === 'All' && (
-                        <Badge variant="secondary" className="ml-2 text-[10px] px-1.5 py-0">
-                          {totalCount}
-                        </Badge>
-                      )}
+                    <div className="flex items-center justify-between w-full text-xs">
+                      <span>{status.label}</span>
+                      <Badge variant="secondary" className="ml-2 text-[9px] px-1.5 py-0">
+                        {status.count ?? 0}
+                      </Badge>
                     </div>
                   </DropdownMenuItem>
                 ))}
@@ -640,28 +651,35 @@ function OrdersContent() {
       {/* Status Tabs Row (Desktop only - Full Width Grid) */}
       <div className="hidden md:grid md:grid-cols-8 gap-2 pb-2 border-b">
         {[
-          { label: 'All', value: 'All' },
-          { label: 'Placed', value: 'Order Placed' },
-          { label: 'Confirmed', value: 'Confirmed' },
-          { label: 'Paid', value: 'Paid' },
-          { label: 'Ready', value: 'Ready for Delivery' },
-          { label: 'Released', value: 'Released for Delivery' },
-          { label: 'Delivered', value: 'Delivered' },
-          { label: 'Cancelled', value: 'Cancelled' }
+          { label: 'All', value: 'All', count: statusCounts.all },
+          { label: 'Placed', value: 'Order Placed', count: statusCounts.placed },
+          { label: 'Confirmed', value: 'Confirmed', count: statusCounts.confirmed },
+          { label: 'Paid', value: 'Paid', count: statusCounts.paid },
+          { label: 'Ready', value: 'Ready for Delivery', count: statusCounts.ready },
+          { label: 'Released', value: 'Released for Delivery', count: statusCounts.released },
+          { label: 'Delivered', value: 'Delivered', count: statusCounts.delivered },
+          { label: 'Cancelled', value: 'Cancelled', count: statusCounts.cancelled }
         ].map((status) => {
           const isActive = statusFilter === status.value;
           return (
             <button
               key={status.value}
               onClick={() => setStatusFilter(status.value)}
-              className={`w-full py-2 text-xs font-semibold rounded-md transition-all duration-200 text-center truncate ${
+              className={`w-full py-2 text-xs font-semibold rounded-md transition-all duration-200 text-center truncate flex items-center justify-center gap-1.5 ${
                 isActive
                   ? 'bg-primary text-primary-foreground shadow-sm'
                   : 'bg-background hover:bg-muted text-muted-foreground border border-input'
               }`}
-              title={status.label}
+              title={`${status.label} (${status.count ?? 0})`}
             >
-              {status.label}
+              <span>{status.label}</span>
+              <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
+                isActive 
+                  ? 'bg-white/20 text-white' 
+                  : 'bg-muted text-muted-foreground border'
+              }`}>
+                {status.count ?? 0}
+              </span>
             </button>
           );
         })}

@@ -48,9 +48,9 @@ import { fbEvent } from '@/lib/fpixel';
 import { ttEvent } from '@/lib/tiktok';
 
 const checkoutSchema = z.object({
-  fullName: z.string().min(2, 'নাম আবশ্যক'),
-  phone: z.string().min(11, 'সঠিক মোবাইল নম্বর দিন'),
-  street: z.string().min(5, 'ঠিকানা আবশ্যক'),
+  fullName: z.string().trim().min(2, 'নাম আবশ্যক'),
+  phone: z.string().trim().regex(/^(?:01)[3-9]\d{8}$/, 'সঠিক মোবাইল নম্বর দিন'),
+  street: z.string().trim().min(5, 'ঠিকানা আবশ্যক'),
   deliveryArea: z.enum(['inside', 'outside'], {
     message: 'ডেলিভারি এলাকা নির্বাচন করুন',
   }),
@@ -60,6 +60,175 @@ const checkoutSchema = z.object({
 });
 
 type CheckoutValues = z.infer<typeof checkoutSchema>;
+
+interface ProductSummaryCardProps {
+  selectedProduct: {
+    productId: string;
+    productName: string;
+    price: number;
+    productImage: string;
+  };
+  basePrice: number;
+  showQuantity: boolean;
+  quantity: number;
+  setQuantity: (q: number) => void;
+}
+
+function ProductSummaryCard({
+  selectedProduct,
+  basePrice,
+  showQuantity,
+  quantity,
+  setQuantity
+}: ProductSummaryCardProps) {
+  return (
+    <>
+      <div className="flex gap-4">
+        <div className="h-20 w-20 relative bg-slate-50 rounded-2xl overflow-hidden border border-slate-100 shrink-0">
+          <Image 
+            src={selectedProduct.productImage || '/assets/product-placeholder.webp'} 
+            alt={selectedProduct.productName || 'Product'} 
+            fill 
+            className="object-cover"
+          />
+        </div>
+        <div className="flex-1 space-y-1">
+          <h3 className="font-bold text-slate-800 dark:text-zinc-100 text-sm leading-tight line-clamp-2">
+            {selectedProduct.productName}
+          </h3>
+          <p className="text-primary font-black">৳{basePrice}</p>
+        </div>
+      </div>
+
+      {showQuantity && (
+        <div className="flex items-center justify-between bg-slate-50 dark:bg-zinc-900/30 p-3 rounded-2xl border">
+          <span className="font-bold text-xs text-slate-600 dark:text-zinc-400">পরিমাণ (Quantity)</span>
+          <div className="flex items-center gap-3">
+            <button 
+              type="button"
+              onClick={() => setQuantity(Math.max(1, quantity - 1))}
+              className="h-8 w-8 rounded-lg border bg-white hover:bg-slate-50 flex items-center justify-center font-bold"
+            >
+              <Minus className="h-3 w-3" />
+            </button>
+            <span className="text-sm font-black text-slate-800 dark:text-zinc-100">{quantity}</span>
+            <button 
+              type="button"
+              onClick={() => setQuantity(quantity + 1)}
+              className="h-8 w-8 rounded-lg border bg-white hover:bg-slate-50 flex items-center justify-center font-bold"
+            >
+              <Plus className="h-3 w-3" />
+            </button>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
+interface CouponAndBillBreakdownProps {
+  couponCode: string;
+  setCouponCode: (c: string) => void;
+  appliedCoupon: string | null;
+  applyingCoupon: boolean;
+  applyCoupon: () => void;
+  removeCoupon: () => void;
+  itemsTotal: number;
+  deliveryCharge: number;
+  isFreeDelivery: boolean;
+  couponDiscount: number;
+  freeDeliveryThreshold: number;
+  finalTotal: number;
+}
+
+function CouponAndBillBreakdown({
+  couponCode,
+  setCouponCode,
+  appliedCoupon,
+  applyingCoupon,
+  applyCoupon,
+  removeCoupon,
+  itemsTotal,
+  deliveryCharge,
+  isFreeDelivery,
+  couponDiscount,
+  freeDeliveryThreshold,
+  finalTotal
+}: CouponAndBillBreakdownProps) {
+  return (
+    <>
+      {/* Coupon Section */}
+      <div className="space-y-3">
+        <div className="flex items-center gap-2">
+          <Input
+            placeholder="Coupon Code"
+            value={couponCode}
+            onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+            disabled={!!appliedCoupon || applyingCoupon}
+            className="h-10 text-xs rounded-xl"
+          />
+          {appliedCoupon ? (
+            <Button
+              type="button"
+              variant="destructive"
+              size="sm"
+              onClick={removeCoupon}
+              className="h-10 px-3 rounded-xl"
+            >
+              Remove
+            </Button>
+          ) : (
+            <Button
+              type="button"
+              size="sm"
+              onClick={applyCoupon}
+              disabled={applyingCoupon || !couponCode}
+              className="h-10 px-4 rounded-xl"
+            >
+              {applyingCoupon ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Apply'}
+            </Button>
+          )}
+        </div>
+        {appliedCoupon && (
+          <p className="text-[10px] text-green-600 font-bold flex items-center gap-1">
+            <CheckCircle2 className="h-3 w-3" /> Coupon "{appliedCoupon}" active!
+          </p>
+        )}
+      </div>
+
+      <Separator />
+
+      <div className="space-y-2 text-sm text-slate-600 dark:text-zinc-400">
+        <div className="flex justify-between">
+          <span>সাবটোটাল</span>
+          <span className="font-bold text-slate-800 dark:text-zinc-100">৳{itemsTotal}</span>
+        </div>
+        <div className="flex justify-between">
+          <span>ডেলিভারি চার্জ</span>
+          <span className={isFreeDelivery ? "text-green-600 font-black" : "font-bold text-slate-800 dark:text-zinc-100"}>
+            {isFreeDelivery ? 'FREE' : `৳${deliveryCharge}`}
+          </span>
+        </div>
+        {couponDiscount > 0 && (
+          <div className="flex justify-between text-green-600 font-medium">
+            <span>কুপন ডিসকাউন্ট</span>
+            <span>- ৳{couponDiscount}</span>
+          </div>
+        )}
+        {isFreeDelivery && (
+          <p className="text-[10px] text-green-600 font-bold text-right -mt-1">
+            ফ্রি শিপিং প্রযোজ্য (অর্ডার ≥ ৳{freeDeliveryThreshold})
+          </p>
+        )}
+        <Separator className="my-2" />
+        <div className="flex justify-between text-base font-black text-slate-900 dark:text-zinc-100 pt-2">
+          <span>সর্বমোট</span>
+          <span className="text-primary text-xl">৳{finalTotal}</span>
+        </div>
+      </div>
+    </>
+  );
+}
 
 export default function OrderForm({ content, settings }: { content: any; settings: any }) {
   const router = useRouter();
@@ -76,6 +245,42 @@ export default function OrderForm({ content, settings }: { content: any; setting
   const [couponDiscount, setCouponDiscount] = useState(0);
   const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
   const [applyingCoupon, setApplyingCoupon] = useState(false);
+
+  // Selected Product State (for pages with multiple products)
+  const [selectedProduct, setSelectedProduct] = useState({
+    productId: content.productId,
+    productName: content.productName,
+    price: content.price,
+    productImage: content.productImage
+  });
+
+  useEffect(() => {
+    setSelectedProduct({
+      productId: content.productId,
+      productName: content.productName,
+      price: content.price,
+      productImage: content.productImage
+    });
+  }, [content.productId, content.productName, content.price, content.productImage]);
+
+  useEffect(() => {
+    const handleProductSelect = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      if (customEvent.detail) {
+        setSelectedProduct({
+          productId: customEvent.detail.productId,
+          productName: customEvent.detail.productName,
+          price: customEvent.detail.price,
+          productImage: customEvent.detail.productImage
+        });
+        setQuantity(content.defaultQuantity || 1);
+      }
+    };
+    window.addEventListener('select-lp-product', handleProductSelect);
+    return () => {
+      window.removeEventListener('select-lp-product', handleProductSelect);
+    };
+  }, [content.defaultQuantity]);
 
   // Manual Payment State
   const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -142,20 +347,20 @@ export default function OrderForm({ content, settings }: { content: any; setting
   // Track InitiateCheckout
   const hasTrackedInitiate = useRef(false);
   useEffect(() => {
-    if (!content.productId || hasTrackedInitiate.current) return;
+    if (!selectedProduct.productId || hasTrackedInitiate.current) return;
     if (!watchedPhone || watchedPhone.trim().length < 11 || !watchedFullName || watchedFullName.trim().length < 2) return;
 
     hasTrackedInitiate.current = true;
 
-    const basePrice = content.price || 0;
+    const basePrice = selectedProduct.price || 0;
     const checkoutPayload = {
-      content_ids: [content.productId],
+      content_ids: [selectedProduct.productId],
       content_type: 'product',
       value: basePrice * quantity,
       currency: 'BDT',
       num_items: 1,
       contents: [{
-        id: content.productId,
+        id: selectedProduct.productId,
         quantity: quantity,
         item_price: basePrice
       }]
@@ -165,17 +370,17 @@ export default function OrderForm({ content, settings }: { content: any; setting
 
     fbEvent('InitiateCheckout', checkoutPayload, initiateUserData);
     ttEvent('InitiateCheckout', checkoutPayload, initiateUserData);
-  }, [watchedPhone, watchedFullName, content.productId, quantity]);
+  }, [watchedPhone, watchedFullName, selectedProduct.productId, selectedProduct.price, quantity]);
 
   // Debounced sync of checkout info for abandoned carts tracking
   const submissionSucceededRef = useRef(false);
   useEffect(() => {
-    if (!content.productId || submissionSucceededRef.current) return;
+    if (!selectedProduct.productId || submissionSucceededRef.current) return;
     if (!watchedPhone || watchedPhone.trim().length < 11 || !watchedFullName || watchedFullName.trim().length < 2) return;
 
     const syncAbandonedCart = async () => {
       try {
-        const basePrice = content.price || 0;
+        const basePrice = selectedProduct.price || 0;
         await fetch('/api/cart/abandoned', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -186,11 +391,11 @@ export default function OrderForm({ content, settings }: { content: any; setting
             street: watchedStreet,
             deliveryArea: watchedDeliveryArea,
             items: [{
-              product: content.productId,
-              name: content.productName || 'Landing Page Product',
+              product: selectedProduct.productId,
+              name: selectedProduct.productName || 'Landing Page Product',
               quantity: quantity,
               price: basePrice,
-              image: content.productImage || ''
+              image: selectedProduct.productImage || ''
             }],
             totalAmount: basePrice * quantity
           })
@@ -202,10 +407,10 @@ export default function OrderForm({ content, settings }: { content: any; setting
 
     const timer = setTimeout(syncAbandonedCart, 2000); // 2 seconds debounce
     return () => clearTimeout(timer);
-  }, [watchedFullName, watchedPhone, watchedStreet, watchedDeliveryArea, quantity, content.productId]);
+  }, [watchedFullName, watchedPhone, watchedStreet, watchedDeliveryArea, quantity, selectedProduct]);
 
   // Pricing calculations
-  const basePrice = content.price || 0;
+  const basePrice = selectedProduct.price || 0;
   const itemsTotal = basePrice * quantity;
   const freeDeliveryThreshold = settings?.freeDeliveryThreshold || 0;
   const isFreeDelivery = freeDeliveryThreshold > 0 && itemsTotal >= freeDeliveryThreshold;
@@ -269,7 +474,7 @@ export default function OrderForm({ content, settings }: { content: any; setting
     }
 
     // Product ID check
-    if (!content.productId) {
+    if (!selectedProduct.productId) {
       toast.error('দুঃখিত, এই পণ্যের অর্ডার বর্তমানে বন্ধ আছে। (Missing Product ID)');
       return;
     }
@@ -278,11 +483,11 @@ export default function OrderForm({ content, settings }: { content: any; setting
     try {
       const orderData = {
         items: [{
-          product: content.productId,
-          name: content.productName || 'Landing Page Product',
+          product: selectedProduct.productId,
+          name: selectedProduct.productName || 'Landing Page Product',
           quantity: quantity,
           price: basePrice,
-          image: content.productImage || ''
+          image: selectedProduct.productImage || ''
         }],
         shippingAddress: {
           fullName: values.fullName,
@@ -323,11 +528,11 @@ export default function OrderForm({ content, settings }: { content: any; setting
           const purchaseEventData = {
             value: order.totalAmount ?? finalTotal,
             currency: 'BDT',
-            content_ids: [content.productId],
+            content_ids: [selectedProduct.productId],
             content_type: 'product',
             num_items: 1,
             contents: [{
-              id: content.productId,
+              id: selectedProduct.productId,
               quantity: quantity,
               item_price: basePrice,
             }],
@@ -402,13 +607,22 @@ export default function OrderForm({ content, settings }: { content: any; setting
     );
   }
 
-  const isFormValid = watchedFullName && watchedPhone && watchedStreet && form.formState.isValid;
+  const isPhoneValid = /^(?:01)[3-9]\d{8}$/.test((watchedPhone || '').trim());
+  const isAddressValid = (watchedStreet || '').trim().length >= 5;
+  const isNameValid = (watchedFullName || '').trim().length >= 2;
+  const isFormValid = !!(
+    isNameValid &&
+    isPhoneValid &&
+    isAddressValid &&
+    watchedDeliveryArea &&
+    (form.watch('paymentMethod') !== 'Manual' || (selectedMethod?.id && manualDetails.senderNumber && manualDetails.transactionId))
+  );
 
   return (
-    <div id="order" className="container mx-auto px-4 max-w-5xl py-10">
+    <div id="order" className="container mx-auto px-4 py-10">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* Left Column: Product Summary */}
-        <div className="lg:col-span-5 space-y-6">
+        <div className="lg:col-span-6 space-y-6 hidden lg:block">
           <Card className="border-2 rounded-[2rem] overflow-hidden shadow-xl bg-white dark:bg-zinc-950">
             <CardHeader className="bg-slate-50 dark:bg-zinc-900/50 pb-4 border-b">
               <CardTitle className="text-lg font-black text-slate-800 dark:text-zinc-100 flex items-center gap-2">
@@ -417,123 +631,34 @@ export default function OrderForm({ content, settings }: { content: any; setting
               </CardTitle>
             </CardHeader>
             <CardContent className="p-6 space-y-6">
-              <div className="flex gap-4">
-                <div className="h-20 w-20 relative bg-slate-50 rounded-2xl overflow-hidden border border-slate-100 shrink-0">
-                  <Image 
-                    src={content.productImage || '/assets/product-placeholder.webp'} 
-                    alt={content.productName || 'Product'} 
-                    fill 
-                    className="object-cover"
-                  />
-                </div>
-                <div className="flex-1 space-y-1">
-                  <h3 className="font-bold text-slate-800 dark:text-zinc-100 text-sm leading-tight line-clamp-2">
-                    {content.productName}
-                  </h3>
-                  <p className="text-primary font-black">৳{basePrice}</p>
-                </div>
-              </div>
-
-              {content.showQuantity && (
-                <div className="flex items-center justify-between bg-slate-50 dark:bg-zinc-900/30 p-3 rounded-2xl border">
-                  <span className="font-bold text-xs text-slate-600 dark:text-zinc-400">পরিমাণ (Quantity)</span>
-                  <div className="flex items-center gap-3">
-                    <button 
-                      type="button"
-                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                      className="h-8 w-8 rounded-lg border bg-white hover:bg-slate-50 flex items-center justify-center font-bold"
-                    >
-                      <Minus className="h-3 w-3" />
-                    </button>
-                    <span className="text-sm font-black text-slate-800 dark:text-zinc-100">{quantity}</span>
-                    <button 
-                      type="button"
-                      onClick={() => setQuantity(quantity + 1)}
-                      className="h-8 w-8 rounded-lg border bg-white hover:bg-slate-50 flex items-center justify-center font-bold"
-                    >
-                      <Plus className="h-3 w-3" />
-                    </button>
-                  </div>
-                </div>
-              )}
-
+              <ProductSummaryCard
+                selectedProduct={selectedProduct}
+                basePrice={basePrice}
+                showQuantity={content.showQuantity}
+                quantity={quantity}
+                setQuantity={setQuantity}
+              />
               <Separator />
-
-              {/* Coupon Section */}
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <Input
-                    placeholder="Coupon Code"
-                    value={couponCode}
-                    onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-                    disabled={!!appliedCoupon || applyingCoupon}
-                    className="h-10 text-xs rounded-xl"
-                  />
-                  {appliedCoupon ? (
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      size="sm"
-                      onClick={removeCoupon}
-                      className="h-10 px-3 rounded-xl"
-                    >
-                      Remove
-                    </Button>
-                  ) : (
-                    <Button
-                      type="button"
-                      size="sm"
-                      onClick={() => applyCoupon()}
-                      disabled={applyingCoupon || !couponCode}
-                      className="h-10 px-4 rounded-xl"
-                    >
-                      {applyingCoupon ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Apply'}
-                    </Button>
-                  )}
-                </div>
-                {appliedCoupon && (
-                  <p className="text-[10px] text-green-600 font-bold flex items-center gap-1">
-                    <CheckCircle2 className="h-3 w-3" /> Coupon "{appliedCoupon}" active!
-                  </p>
-                )}
-              </div>
-
-              <Separator />
-
-              <div className="space-y-2 text-sm text-slate-600 dark:text-zinc-400">
-                <div className="flex justify-between">
-                  <span>সাবটোটাল</span>
-                  <span className="font-bold text-slate-800 dark:text-zinc-100">৳{itemsTotal}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>ডেলিভারি চার্জ</span>
-                  <span className={isFreeDelivery ? "text-green-600 font-black" : "font-bold text-slate-800 dark:text-zinc-100"}>
-                    {isFreeDelivery ? 'FREE' : `৳${deliveryCharge}`}
-                  </span>
-                </div>
-                {couponDiscount > 0 && (
-                  <div className="flex justify-between text-green-600 font-medium">
-                    <span>কুপন ডিসকাউন্ট</span>
-                    <span>- ৳{couponDiscount}</span>
-                  </div>
-                )}
-                {isFreeDelivery && (
-                  <p className="text-[10px] text-green-600 font-bold text-right -mt-1">
-                    ফ্রি শিপিং প্রযোজ্য (অর্ডার ≥ ৳{freeDeliveryThreshold})
-                  </p>
-                )}
-                <Separator className="my-2" />
-                <div className="flex justify-between text-base font-black text-slate-900 dark:text-zinc-100 pt-2">
-                  <span>সর্বমোট</span>
-                  <span className="text-primary text-xl">৳{finalTotal}</span>
-                </div>
-              </div>
+              <CouponAndBillBreakdown
+                couponCode={couponCode}
+                setCouponCode={setCouponCode}
+                appliedCoupon={appliedCoupon}
+                applyingCoupon={applyingCoupon}
+                applyCoupon={applyCoupon}
+                removeCoupon={removeCoupon}
+                itemsTotal={itemsTotal}
+                deliveryCharge={deliveryCharge}
+                isFreeDelivery={isFreeDelivery}
+                couponDiscount={couponDiscount}
+                freeDeliveryThreshold={freeDeliveryThreshold}
+                finalTotal={finalTotal}
+              />
             </CardContent>
           </Card>
         </div>
 
         {/* Right Column: Checkout Form */}
-        <div className="lg:col-span-7">
+        <div className="lg:col-span-6">
           <Card className="border-4 border-primary/20 rounded-[2rem] shadow-2xl overflow-hidden bg-white dark:bg-zinc-950">
             <div className="bg-primary p-6 text-primary-foreground text-center">
               <h2 className="text-xl md:text-2xl font-black">{content.title}</h2>
@@ -541,6 +666,17 @@ export default function OrderForm({ content, settings }: { content: any; setting
 
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="p-6 md:p-8 space-y-6">
+                {/* Mobile Only: Selected Product Summary */}
+                <div className="block lg:hidden space-y-4 pb-4 border-b">
+                  <ProductSummaryCard
+                    selectedProduct={selectedProduct}
+                    basePrice={basePrice}
+                    showQuantity={content.showQuantity}
+                    quantity={quantity}
+                    setQuantity={setQuantity}
+                  />
+                </div>
+
                 <div className="space-y-4">
                   <FormField
                     control={form.control}
@@ -618,6 +754,27 @@ export default function OrderForm({ content, settings }: { content: any; setting
                       </FormItem>
                     )}
                   />
+                </div>
+
+                {/* Mobile Only: Coupon & Bill Breakdown */}
+                <div className="block lg:hidden space-y-4 py-4 border-y">
+                  <CouponAndBillBreakdown
+                    couponCode={couponCode}
+                    setCouponCode={setCouponCode}
+                    appliedCoupon={appliedCoupon}
+                    applyingCoupon={applyingCoupon}
+                    applyCoupon={applyCoupon}
+                    removeCoupon={removeCoupon}
+                    itemsTotal={itemsTotal}
+                    deliveryCharge={deliveryCharge}
+                    isFreeDelivery={isFreeDelivery}
+                    couponDiscount={couponDiscount}
+                    freeDeliveryThreshold={freeDeliveryThreshold}
+                    finalTotal={finalTotal}
+                  />
+                </div>
+
+                <div className="space-y-4">
 
                   {/* Payment Method Selector */}
                   <FormField
@@ -730,8 +887,12 @@ export default function OrderForm({ content, settings }: { content: any; setting
 
                 <Button 
                   type="submit" 
-                  disabled={loading || isPendingOrderBlocked || (form.watch('paymentMethod') === 'Manual' && !selectedMethod?.id)}
-                  className="w-full h-14 rounded-2xl font-black text-xl gap-3 shadow-lg shadow-primary/20 hover:scale-[1.01] active:scale-95 transition-all duration-200"
+                  disabled={loading || !isFormValid || isPendingOrderBlocked}
+                  className={`w-full h-14 rounded-2xl font-black text-xl gap-3 transition-all duration-200 ${
+                    isFormValid && !isPendingOrderBlocked
+                      ? 'bg-primary shadow-lg shadow-primary/20 hover:scale-[1.01] active:scale-95'
+                      : 'bg-muted text-muted-foreground cursor-not-allowed opacity-70'
+                  }`}
                 >
                   {loading ? (
                     <Loader2 className="h-6 w-6 animate-spin" />
@@ -744,6 +905,11 @@ export default function OrderForm({ content, settings }: { content: any; setting
                     </>
                   )}
                 </Button>
+                {!isFormValid && (
+                  <p className="text-[10px] font-bold text-muted-foreground text-center w-full uppercase tracking-widest mt-2">
+                    অর্ডার সম্পন্ন করতে ডেলিভারি তথ্য পূরণ করুন
+                  </p>
+                )}
 
                 <div className="flex items-center justify-center gap-6 text-[10px] uppercase font-bold opacity-50 tracking-widest">
                    <div className="flex items-center gap-1"><Truck className="h-3 w-3" /> Fast Delivery</div>

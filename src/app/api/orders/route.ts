@@ -590,6 +590,41 @@ export async function GET(req: NextRequest) {
 
     const totalCount = await Order.countDocuments(query);
     
+    // Get counts for each status to display in tabs
+    let counts = {
+      all: 0,
+      placed: 0,
+      confirmed: 0,
+      paid: 0,
+      ready: 0,
+      released: 0,
+      delivered: 0,
+      cancelled: 0
+    };
+
+    if (fetchAll && isAdmin) {
+      const countQuery = { ...query };
+      delete countQuery.status; // Remove status filter to count all
+
+      const statusCounts = await Order.aggregate([
+        { $match: countQuery },
+        { $group: { _id: "$status", count: { $sum: 1 } } }
+      ]);
+
+      const totalAll = await Order.countDocuments(countQuery);
+      counts.all = totalAll;
+
+      statusCounts.forEach((sc: any) => {
+        if (sc._id === 'Order Placed') counts.placed = sc.count;
+        else if (sc._id === 'Confirmed') counts.confirmed = sc.count;
+        else if (sc._id === 'Paid') counts.paid = sc.count;
+        else if (sc._id === 'Ready for Delivery') counts.ready = sc.count;
+        else if (sc._id === 'Released for Delivery') counts.released = sc.count;
+        else if (sc._id === 'Delivered') counts.delivered = sc.count;
+        else if (sc._id === 'Cancelled') counts.cancelled = sc.count;
+      });
+    }
+    
     let ordersQuery = Order.find(query).sort({ createdAt: -1 });
 
     if (fetchAll && isAdmin) {
@@ -639,7 +674,8 @@ export async function GET(req: NextRequest) {
         orders: processedOrders,
         totalCount,
         page,
-        totalPages: Math.ceil(totalCount / limit)
+        totalPages: Math.ceil(totalCount / limit),
+        counts
       });
     }
 

@@ -15,14 +15,7 @@ export default function HeroSection({ content, styles }: { content: any; styles:
         <p className={`text-lg md:text-xl opacity-80 max-w-2xl ${textColor}`}>
           {content.subheadline}
         </p>
-        <div className="pt-4">
-          <Link 
-            href={content.ctaLink || '#order'} 
-            className="inline-flex items-center justify-center bg-primary text-white h-14 px-10 rounded-full font-black text-lg shadow-xl shadow-primary/30 hover:scale-105 transition-transform"
-          >
-            {content.ctaText}
-          </Link>
-        </div>
+
       </div>
       
       {content.backgroundImage && (

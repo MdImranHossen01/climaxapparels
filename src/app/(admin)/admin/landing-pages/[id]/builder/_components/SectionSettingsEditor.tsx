@@ -28,6 +28,12 @@ import {
   SectionStyles 
 } from '@/lib/landing-page-sections';
 import { cn } from '@/lib/utils';
+import dynamic from 'next/dynamic';
+
+const NovelEditor = dynamic(() => import('@/components/editor/NovelEditor'), {
+  ssr: false,
+  loading: () => <div className="h-40 w-full animate-pulse bg-muted rounded-xl border" />
+});
 
 const AVAILABLE_ICONS = [
   { value: 'leaf', label: 'Leaf (প্রাকৃতিক/ন্যাচারাল)' },
@@ -70,7 +76,15 @@ export default function SectionSettingsEditor({
   if (!section) return null;
 
   const handleContentChange = (key: string, value: any) => {
-    onUpdateContent({ ...(section.content || {}), [key]: value });
+    let finalValue = value;
+    if (key === 'content' && typeof value === 'object' && value !== null) {
+      try {
+        finalValue = JSON.stringify(value);
+      } catch (e) {
+        console.error('Failed to stringify content value:', e);
+      }
+    }
+    onUpdateContent({ ...(section.content || {}), [key]: finalValue });
   };
 
   const handleStyleChange = (key: string, value: any) => {
@@ -319,6 +333,15 @@ export default function SectionSettingsEditor({
                       className="rounded-xl font-bold text-emerald-600"
                     />
                   </div>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-bold uppercase opacity-50">Short Description (optional)</Label>
+                  <Textarea 
+                    placeholder="If set, this will be shown instead of the long product description"
+                    value={section.content?.shortDescription ?? ''} 
+                    onChange={(e) => handleContentChange('shortDescription', e.target.value)}
+                    className="rounded-xl min-h-[80px]"
+                  />
                 </div>
                 <div className="space-y-2">
                    <Label className="text-[10px] font-bold uppercase opacity-50">Benefits (One per line)</Label>
@@ -697,12 +720,28 @@ export default function SectionSettingsEditor({
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Label className="text-[10px] font-bold uppercase opacity-50">HTML / Text Content</Label>
-                  <Textarea 
-                    value={section.content?.content ?? ''} 
-                    onChange={(e) => handleContentChange('content', e.target.value)}
-                    className="rounded-xl min-h-[200px] font-mono text-xs"
-                    placeholder="<p>Enter HTML or plain text...</p>"
-                  />
+                  <div className="min-h-[300px] border rounded-md overflow-hidden bg-background prose-sm max-w-none">
+                    <NovelEditor 
+                      initialValue={(() => {
+                        try {
+                          return section.content?.content ? JSON.parse(section.content.content) : undefined;
+                        } catch (e) {
+                          // Fallback for plain text/HTML content: strip tags on client side
+                          let textVal = section.content?.content || '';
+                          if (typeof window !== 'undefined' && textVal.includes('<')) {
+                            const tempDiv = document.createElement("div");
+                            tempDiv.innerHTML = textVal;
+                            textVal = tempDiv.textContent || tempDiv.innerText || "";
+                          }
+                          return {
+                            type: 'doc',
+                            content: [{ type: 'paragraph', content: [{ type: 'text', text: textVal }] }]
+                          };
+                        }
+                      })()} 
+                      onChange={(value) => handleContentChange('content', value)} 
+                    />
+                  </div>
                 </div>
               </div>
             )}

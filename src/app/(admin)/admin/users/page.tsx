@@ -28,8 +28,10 @@ import {
   ArrowRight,
   ShieldCheck,
   UserCog,
-  Trash2
+  Trash2,
+  Search
 } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -73,7 +75,27 @@ function UsersContent() {
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
   const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
+
+  // Debounce search term
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 500);
+    return () => clearTimeout(handler);
+  }, [searchTerm]);
+
+  // Reset page when filters change
+  useEffect(() => {
+    if (currentPage > 1) {
+      setCurrentPage(1);
+      const params = new URLSearchParams(searchParams.toString());
+      params.delete('page');
+      router.push(`/admin/users?${params.toString()}`);
+    }
+  }, [debouncedSearchTerm]);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isAssignAdminOpen, setIsAssignAdminOpen] = useState(false);
   const [adminEmail, setAdminEmail] = useState('');
@@ -85,7 +107,7 @@ function UsersContent() {
   const fetchUsers = async (page = currentPage) => {
     setLoading(true);
     try {
-      const response = await fetch(`/api/admin/users?page=${page}&limit=20`);
+      const response = await fetch(`/api/admin/users?page=${page}&limit=20&search=${debouncedSearchTerm}`);
       if (!response.ok) throw new Error('Failed to fetch users');
       const data = await response.json();
       setUsers(data.users || []);
@@ -101,7 +123,7 @@ function UsersContent() {
 
   useEffect(() => {
     fetchUsers(currentPage);
-  }, [currentPage]);
+  }, [currentPage, debouncedSearchTerm]);
 
   useEffect(() => {
     const pageFromParams = Math.max(1, parseInt(searchParams.get('page') || '1'));
@@ -238,6 +260,17 @@ function UsersContent() {
             <span className="text-primary font-bold text-sm">{totalCount} Total Users</span>
           </div>
         </div>
+      </div>
+      
+      {/* Search Filter Input */}
+      <div className="relative w-full max-w-md">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          placeholder="Search name, email or phone..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="pl-9 h-11 rounded-xl border bg-white focus-visible:ring-primary/20 shadow-sm"
+        />
       </div>
 
       <div className="rounded-2xl border shadow-sm overflow-hidden bg-white">

@@ -42,6 +42,7 @@ import { v4 as uuidv4 } from 'uuid';
 // Sub-components (defined in the same file or separate)
 import SortableSectionItem from './_components/SortableSectionItem';
 import SectionSettingsEditor from './_components/SectionSettingsEditor';
+import Frame from './_components/Frame';
 
 export default function LandingPageBuilder({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -96,6 +97,26 @@ export default function LandingPageBuilder({ params }: { params: Promise<{ id: s
     
     setActiveId(null);
   };
+
+  // Sync drag release/cancel from host window to iframe
+  useEffect(() => {
+    if (!activeId) return;
+
+    const handleHostPointerUp = () => {
+      const iframe = document.querySelector('iframe');
+      if (iframe?.contentWindow) {
+        iframe.contentWindow.dispatchEvent(new PointerEvent('pointerup', { bubbles: true }));
+        iframe.contentWindow.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }));
+      }
+    };
+
+    window.addEventListener('pointerup', handleHostPointerUp);
+    window.addEventListener('mouseup', handleHostPointerUp);
+    return () => {
+      window.removeEventListener('pointerup', handleHostPointerUp);
+      window.removeEventListener('mouseup', handleHostPointerUp);
+    };
+  }, [activeId]);
 
   const addSection = (template: any) => {
     const newSection = {
@@ -216,7 +237,13 @@ export default function LandingPageBuilder({ params }: { params: Promise<{ id: s
 
         {/* Center Canvas */}
         <main className="flex-1 overflow-y-auto bg-gray-100/50 p-8 flex justify-center items-start">
-          <div className={`${previewMode === 'mobile' ? 'w-[375px] h-fit min-h-[667px]' : 'w-full max-w-4xl'} bg-white shadow-2xl transition-all duration-300 rounded-lg overflow-hidden flex flex-col`}>
+          <div 
+            className={`bg-white shadow-2xl transition-all duration-300 rounded-lg overflow-hidden flex flex-col ${
+              previewMode === 'mobile' 
+                ? 'w-[375px] h-[667px]' 
+                : 'w-full max-w-4xl h-[calc(100vh-12rem)]'
+            }`}
+          >
             {sections.length === 0 ? (
               <div className="flex-1 flex flex-col items-center justify-center py-20 text-center space-y-4 px-10">
                 <div className="h-20 w-20 bg-primary/5 text-primary rounded-full flex items-center justify-center">
@@ -226,30 +253,34 @@ export default function LandingPageBuilder({ params }: { params: Promise<{ id: s
                 <p className="text-muted-foreground text-sm">Select a section from the left sidebar to add it to your landing page.</p>
               </div>
             ) : (
-              <DndContext 
-                sensors={sensors}
-                collisionDetection={closestCenter}
-                onDragStart={handleDragStart}
-                onDragEnd={handleDragEnd}
-                modifiers={[restrictToVerticalAxis]}
-              >
-                <SortableContext 
-                  items={sections.map(s => s.id)}
-                  strategy={verticalListSortingStrategy}
-                >
-                  <div className="w-full">
-                    {sections.map((section) => (
-                      <SortableSectionItem 
-                        key={section.id} 
-                        section={section} 
-                        isSelected={selectedSectionId === section.id}
-                        onSelect={() => setSelectedSectionId(section.id)}
-                        onDelete={() => deleteSection(section.id)}
-                      />
-                    ))}
-                  </div>
-                </SortableContext>
-              </DndContext>
+              <Frame>
+                <div className="min-h-full bg-white">
+                  <DndContext 
+                    sensors={sensors}
+                    collisionDetection={closestCenter}
+                    onDragStart={handleDragStart}
+                    onDragEnd={handleDragEnd}
+                    modifiers={[restrictToVerticalAxis]}
+                  >
+                    <SortableContext 
+                      items={sections.map(s => s.id)}
+                      strategy={verticalListSortingStrategy}
+                    >
+                      <div className="w-full">
+                        {sections.map((section) => (
+                          <SortableSectionItem 
+                            key={section.id} 
+                            section={section} 
+                            isSelected={selectedSectionId === section.id}
+                            onSelect={() => setSelectedSectionId(section.id)}
+                            onDelete={() => deleteSection(section.id)}
+                          />
+                        ))}
+                      </div>
+                    </SortableContext>
+                  </DndContext>
+                </div>
+              </Frame>
             )}
           </div>
         </main>

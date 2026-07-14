@@ -95,6 +95,8 @@ export default async function PublicLandingPage({ params }: { params: Promise<{ 
     }
   }
 
+  const productShowcaseCount = sections.filter((s: any) => s.type === 'product_showcase').length;
+
   return (
     <div className="min-h-screen bg-white pb-20 md:pb-24">
       {sections.map((section: any) => {
@@ -111,11 +113,15 @@ export default async function PublicLandingPage({ params }: { params: Promise<{ 
               content={section.content} 
               styles={section.styles} 
               settings={settings}
+              productShowcaseCount={productShowcaseCount}
             />
           </section>
         );
       })}
-      <FloatingLPBar whatsappNumber={settings?.socialLinks?.whatsapp} />
+      <FloatingLPBar 
+        whatsappNumber={settings?.socialLinks?.whatsapp} 
+        productShowcaseCount={productShowcaseCount}
+      />
     </div>
   );
 }

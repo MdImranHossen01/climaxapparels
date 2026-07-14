@@ -134,7 +134,7 @@ export const SECTION_TEMPLATES: SectionTemplate[] = [
     description: 'Add paragraphs, lists, and images',
     icon: 'file-text',
     defaultContent: {
-      content: '<p>আপনার পছন্দের লেখা এখানে লিখুন...</p>',
+      content: '',
     }
   }
 ];
