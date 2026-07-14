@@ -1,4 +1,4 @@
-﻿/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -179,7 +179,7 @@ export default function FooterV1() {
               </li>
               <li className="flex items-center justify-center md:justify-start gap-3">
                 <Mail size={16} className="text-primary shrink-0" />
-                <span>{settings?.contact?.email || 'support@Climax Apparels.com'}</span>
+                <span>{settings?.contact?.email || 'support@climaxapparels.com'}</span>
               </li>
             </ul>
             {hasSocialLinks && (

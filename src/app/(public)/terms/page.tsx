@@ -1,4 +1,4 @@
-﻿import { Metadata } from 'next';
+import { Metadata } from 'next';
 import connectToDatabase from '@/lib/db';
 import GlobalSettings from '@/models/GlobalSettings';
 import { Separator } from '@/components/ui/separator';
@@ -17,7 +17,7 @@ async function getSettings() {
       return {
         brandName: "Climax Apparels",
         contact: {
-          email: "support@Climax Apparels.com",
+          email: "support@climaxapparels.com",
           phone: "+8801234567890"
         }
       };
@@ -28,7 +28,7 @@ async function getSettings() {
     return {
       brandName: "Climax Apparels",
       contact: {
-        email: "support@Climax Apparels.com",
+        email: "support@climaxapparels.com",
         phone: "+8801234567890"
       }
     };
@@ -38,7 +38,7 @@ async function getSettings() {
 export default async function TermsPage() {
   const settings = await getSettings();
   const brandName = settings.brandName || "RPL Market";
-  const contactEmail = settings.contact?.email || "support@Climax Apparels.com";
+  const contactEmail = settings.contact?.email || "support@climaxapparels.com";
   const lastUpdated = "April 04, 2026";
 
   return (

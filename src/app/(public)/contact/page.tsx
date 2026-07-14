@@ -1,4 +1,4 @@
-﻿import { Metadata } from 'next';
+import { Metadata } from 'next';
 import { Mail, Phone, MapPin, ExternalLink, MessageCircleMore } from 'lucide-react';
 import { Facebook, X, Instagram, Youtube } from '@/components/ui/social-icons';
 import connectToDatabase from '@/lib/db';
@@ -19,7 +19,7 @@ async function getSettings() {
       return {
         brandName: "Climax Apparels",
         contact: {
-          email: "support@Climax Apparels.com",
+          email: "support@climaxapparels.com",
           phone: "+8801234567890",
           address: "Dhaka, Bangladesh"
         },

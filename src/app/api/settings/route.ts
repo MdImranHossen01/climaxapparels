@@ -35,7 +35,7 @@ export async function GET() {
       return NextResponse.json({
         brandName: process.env.NEXT_PUBLIC_STORE_NAME || "Climax Apparels",
         contact: {
-          email: "support@Climax Apparels.com",
+          email: "support@climaxapparels.com",
           phone: "+8801234567890",
           address: "Dhaka, Bangladesh"
         },

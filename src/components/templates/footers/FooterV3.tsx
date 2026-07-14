@@ -1,4 +1,4 @@
-﻿/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import Link from 'next/link';
@@ -83,7 +83,7 @@ export default function FooterV3() {
                   <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-primary">Comm_Links</h4>
                   <div className="space-y-4">
                      <div className="flex items-center gap-4 text-xs text-neutral-400">
-                        <Mail className="h-4 w-4 text-primary" /> {settings?.contact?.email || 'support@Climax Apparels.com'}
+                        <Mail className="h-4 w-4 text-primary" /> {settings?.contact?.email || 'support@climaxapparels.com'}
                      </div>
                      <div className="flex items-center gap-4 text-xs text-neutral-400">
                         <Phone className="h-4 w-4 text-primary" /> {settings?.contact?.phone || '+880 1234 5678'}

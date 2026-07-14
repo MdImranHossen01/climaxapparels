@@ -1,4 +1,4 @@
-﻿import { Metadata } from 'next';
+import { Metadata } from 'next';
 import Link from 'next/link';
 import { Shirt, ShieldCheck, Award, Sparkles, HeartHandshake, ArrowRight } from 'lucide-react';
 import connectToDatabase from '@/lib/db';
@@ -18,7 +18,7 @@ async function getSettings() {
       return {
         brandName: "Climax Apparels",
         contact: {
-          email: "support@Climax Apparels.com",
+          email: "support@climaxapparels.com",
           phone: "+8801234567890",
           address: "Dhaka, Bangladesh"
         }
