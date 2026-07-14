@@ -367,4 +367,4 @@ export async function printStickerInvoice(orderOrOrders: any | any[], settings: 
     }, 1000);
   }
 }
-}
+
