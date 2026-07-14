@@ -133,6 +133,10 @@ const data = {
           url: "/admin/landing-pages",
         },
         {
+          title: "Catalog",
+          url: "/admin/catalog",
+        },
+        {
           title: "Testimonials",
           url: "/admin/cms/testimonials",
         },
