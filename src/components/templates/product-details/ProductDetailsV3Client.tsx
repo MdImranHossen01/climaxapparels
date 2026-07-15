@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+﻿/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
@@ -233,12 +233,12 @@ export default function ProductDetailsV3Client({ product }: ProductDetailsV3Clie
                 <div className="flex items-center gap-6 pt-4">
                    <div className="flex flex-col">
                       <span className="text-[8px] font-mono text-muted-foreground uppercase mb-1">Base_Val</span>
-                      <span className="text-4xl font-black">৳{displaySalePrice || displayPrice}</span>
+                      <span className="text-4xl font-black">${displaySalePrice || displayPrice}</span>
                    </div>
                    {displaySalePrice && (
                      <div className="flex flex-col">
                         <span className="text-[8px] font-mono text-muted-foreground uppercase mb-1">Prev_Val</span>
-                        <span className="text-2xl font-bold text-muted-foreground line-through opacity-30">৳{displayPrice}</span>
+                        <span className="text-2xl font-bold text-muted-foreground line-through opacity-30">${displayPrice}</span>
                      </div>
                    )}
                 </div>

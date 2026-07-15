@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+﻿/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
@@ -291,11 +291,11 @@ export default function ProductCardV2({ product: initialProduct, isFlashSale }: 
 
         <div className="flex items-center gap-3">
           <span className="text-xl font-black text-[#00a870]">
-            ৳{Math.round(product.salePrice ?? product.price)}
+            ${Math.round(product.salePrice ?? product.price)}
           </span>
           {product.salePrice != null && product.salePrice < product.price && (
             <span className="text-sm text-muted-foreground line-through decoration-primary/20">
-              ৳{Math.round(product.price)}
+              ${Math.round(product.price)}
             </span>
           )}
         </div>

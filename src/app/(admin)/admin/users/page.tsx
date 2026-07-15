@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState, Suspense } from 'react';
 import { useSession } from 'next-auth/react';
@@ -334,7 +334,7 @@ function UsersContent() {
                   <TableCell>
                     <div className="flex flex-col">
                       <span className="font-bold text-slate-700">{user.totalOrders} Orders</span>
-                      <span className="text-[10px] text-muted-foreground font-medium">৳{user.totalSpent.toLocaleString()}</span>
+                      <span className="text-[10px] text-muted-foreground font-medium">${user.totalSpent.toLocaleString()}</span>
                     </div>
                   </TableCell>
                   <TableCell>
@@ -517,7 +517,7 @@ function UsersContent() {
                     </div>
                     <div className="p-4 bg-primary/5 rounded-2xl border border-primary/10 flex flex-col items-center text-center">
                       <CreditCard className="h-6 w-6 text-primary mb-2" />
-                      <span className="text-xl font-black text-primary">৳{selectedUser.totalSpent.toLocaleString()}</span>
+                      <span className="text-xl font-black text-primary">${selectedUser.totalSpent.toLocaleString()}</span>
                       <span className="text-[10px] font-bold uppercase text-primary/60">Total Spent</span>
                     </div>
                   </div>

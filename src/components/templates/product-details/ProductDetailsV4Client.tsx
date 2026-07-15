@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+﻿/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -33,7 +33,7 @@ import { ProductImageGallery } from '@/components/storefront/ProductImageGallery
 import { generateHtml } from '@/lib/server-html';
 import ShareDialog from '@/components/storefront/ShareDialog';
 
-const CURRENCY_SYMBOL = '৳';
+const CURRENCY_SYMBOL = '$';
 
 interface ProductDetailsV4ClientProps {
   product: any;

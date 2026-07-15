@@ -1,4 +1,4 @@
-import { format, isValid } from 'date-fns';
+﻿import { format, isValid } from 'date-fns';
 
 export function numberToWords(num: number): string {
   if (num === 0) return 'Zero';
@@ -375,8 +375,8 @@ export async function generateBillPDF(bill: any, settings: any, mode: 'download'
                   <td><strong>${item.name || ""}</strong></td>
                   <td class="text-center">${item.quantity || 1}</td>
                   ${docType !== 'chalan' ? `
-                    <td class="text-right">৳${Math.round(item.price || 0)}</td>
-                    <td class="text-right">৳${Math.round((item.price || 0) * (item.quantity || 1))}</td>
+                    <td class="text-right">$${Math.round(item.price || 0)}</td>
+                    <td class="text-right">$${Math.round((item.price || 0) * (item.quantity || 1))}</td>
                   ` : ''}
                 </tr>
               `).join('')}
@@ -388,49 +388,49 @@ export async function generateBillPDF(bill: any, settings: any, mode: 'download'
               <div class="totals-box">
                 <div class="total-row">
                   <span>Subtotal:</span>
-                  <span>৳${Math.round(bill.subtotal || 0)}</span>
+                  <span>$${Math.round(bill.subtotal || 0)}</span>
                 </div>
                 ${bill.deliveryCharge > 0 ? `
                   <div class="total-row">
                     <span>Delivery Charge:</span>
-                    <span>৳${Math.round(bill.deliveryCharge)}</span>
+                    <span>$${Math.round(bill.deliveryCharge)}</span>
                   </div>
                 ` : ''}
                 ${bill.serviceFee > 0 ? `
                   <div class="total-row">
                     <span>Service Fee:</span>
-                    <span>৳${Math.round(bill.serviceFee)}</span>
+                    <span>$${Math.round(bill.serviceFee)}</span>
                   </div>
                 ` : ''}
                 ${bill.discount > 0 ? `
                   <div class="total-row" style="color: var(--primary);">
                     <span>${bill.discountType === 'percentage' ? `Discount (${bill.discountValue}%):` : 'Discount:'}</span>
-                    <span>- ৳${Math.round(bill.discount)}</span>
+                    <span>- $${Math.round(bill.discount)}</span>
                   </div>
                 ` : ''}
                 <div class="total-row highlight">
                   <span>Total:</span>
-                  <span>৳${Math.round(bill.total || 0)}</span>
+                  <span>$${Math.round(bill.total || 0)}</span>
                 </div>
                 
                 ${docType === 'bill' ? `
                   ${bill.prevDue > 0 ? `
                     <div class="total-row">
                       <span>Previous Due:</span>
-                      <span>৳${Math.round(bill.prevDue)}</span>
+                      <span>$${Math.round(bill.prevDue)}</span>
                     </div>
                   ` : ''}
                   <div class="total-row grand-total">
                     <span>Grand Total:</span>
-                    <span>৳${Math.round(bill.gTotal || 0)}</span>
+                    <span>$${Math.round(bill.gTotal || 0)}</span>
                   </div>
                   <div class="total-row">
                     <span>Paid Amount:</span>
-                    <span>৳${Math.round(bill.cashIn || 0)}</span>
+                    <span>$${Math.round(bill.cashIn || 0)}</span>
                   </div>
                   <div class="total-row highlight" style="${bill.currentBillDue > 0 ? 'color: #ef4444;' : 'color: var(--primary);'}">
                     <span>Remaining Due:</span>
-                    <span>৳${Math.round(bill.currentBillDue || 0)}</span>
+                    <span>$${Math.round(bill.currentBillDue || 0)}</span>
                   </div>
                 ` : ''}
               </div>

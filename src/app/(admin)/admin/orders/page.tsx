@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
@@ -429,7 +429,7 @@ function OrdersContent() {
       const fullAddress = `${shipping.street || ''}, ${shipping.city || ''}`;
       const itemsList = o.items.map((i: any) => {
         const variantDesc = [i.color, i.size].filter(Boolean).join('/');
-        return `• ${i.quantity} x ${i.name}${variantDesc ? ` [${variantDesc}]` : ''} (@৳${i.price})`;
+        return `• ${i.quantity} x ${i.name}${variantDesc ? ` [${variantDesc}]` : ''} (@$${i.price})`;
       }).join('\n');
 
       // Profit Calculation: Total - COGS - DeliveryCharge
@@ -922,7 +922,7 @@ function OrdersContent() {
                       )}
                     </div>
                   </TableCell>
-                  <TableCell className="font-bold">৳{Math.round(order.totalAmount ?? 0)}</TableCell>
+                  <TableCell className="font-bold">${Math.round(order.totalAmount ?? 0)}</TableCell>
                   <TableCell>
                     <div className="flex flex-col gap-1">
                       <Badge

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { Truck, Zap, Info } from 'lucide-react';
 
@@ -19,7 +19,7 @@ export function FreeDeliveryBanner({ settings }: FreeDeliveryBannerProps) {
         <p className="text-sm md:text-base font-black uppercase tracking-wider text-center">
           Free Shipping Alert! <span className="hidden md:inline mx-2">|</span> 
           Get <span className="bg-black text-white px-2 py-0.5 rounded">FREE DELIVERY</span> 
-          on all orders over <span className="underline decoration-2">৳{threshold}</span>
+          on all orders over <span className="underline decoration-2">${threshold}</span>
         </p>
         <Zap className="h-5 w-5 fill-current" />
       </div>

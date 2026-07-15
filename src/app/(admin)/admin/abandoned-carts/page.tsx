@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
@@ -162,7 +162,7 @@ function AbandonedCartsContent() {
       const rows = allCarts.map((c: any) => {
         const itemsText = c.items.map((i: any) => {
           const variantDesc = [i.color, i.size].filter(Boolean).join('/');
-          return `• ${i.quantity} x ${i.name}${variantDesc ? ` [${variantDesc}]` : ''} (@৳${i.price})`;
+          return `• ${i.quantity} x ${i.name}${variantDesc ? ` [${variantDesc}]` : ''} (@$${i.price})`;
         }).join('\n');
 
         return [
@@ -333,7 +333,7 @@ function AbandonedCartsContent() {
                                   <p className="text-xs text-muted-foreground">
                                     {item.color && `Color: ${item.color} `}
                                     {item.size && `Size: ${item.size} `}
-                                    Qty: {item.quantity} × ৳{item.price}
+                                    Qty: {item.quantity} × ${item.price}
                                   </p>
                                 </div>
                               </div>
@@ -341,7 +341,7 @@ function AbandonedCartsContent() {
                           </div>
                         </TableCell>
                         <TableCell className="font-bold text-primary align-top">
-                          ৳{Math.round(cart.totalAmount)}
+                          ${Math.round(cart.totalAmount)}
                         </TableCell>
                         <TableCell className="text-sm text-muted-foreground align-top">
                           <div className="flex items-center gap-1.5">

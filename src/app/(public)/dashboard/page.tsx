@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
@@ -128,7 +128,7 @@ export default function OrdersPage() {
                   <TableCell className="font-mono text-xs">#{order?._id?.slice(-8).toUpperCase() || 'N/A'}</TableCell>
                   <TableCell className="text-xs">{order?.createdAt ? new Date(order.createdAt).toLocaleDateString() : 'N/A'}</TableCell>
                   <TableCell className="text-xs">{Array.isArray(order?.items) ? order.items.length : 0} items</TableCell>
-                  <TableCell className="font-bold">৳{typeof order?.totalAmount === 'number' ? Math.round(order.totalAmount) : '0'}</TableCell>
+                  <TableCell className="font-bold">${typeof order?.totalAmount === 'number' ? Math.round(order.totalAmount) : '0'}</TableCell>
                   <TableCell>
                     <div className="flex flex-col gap-1">
                       <Badge variant={getStatusColor(order.status) as any}>
@@ -181,7 +181,7 @@ export default function OrdersPage() {
           <Card className="bg-primary/5 border-none shadow-none">
               <CardContent className="pt-6 flex flex-col items-center text-center gap-2">
                   <Package className="h-6 w-6 text-primary" />
-                  <div className="text-2xl font-black">৳{profile?.walletBalance || 0}</div>
+                  <div className="text-2xl font-black">${profile?.walletBalance || 0}</div>
                   <div className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">
                     Available Tokens
                   </div>

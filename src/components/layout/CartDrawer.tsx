@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { 
     Sheet, 
@@ -126,7 +126,7 @@ export function CartDrawer({ children }: { children: React.ReactElement }) {
                         <Plus className="h-3 w-3" />
                       </Button>
                     </div>
-                    <p className="text-sm font-bold text-primary">৳{Math.round(item.price * item.quantity)}</p>
+                    <p className="text-sm font-bold text-primary">${Math.round(item.price * item.quantity)}</p>
                   </div>
                 </div>
               </div>
@@ -139,7 +139,7 @@ export function CartDrawer({ children }: { children: React.ReactElement }) {
             <div className="flex flex-col gap-2 w-full">
               <div className="flex items-center justify-between text-lg font-extrabold tracking-tight">
                 <span>Total Amount</span>
-                <span className="text-primary">৳{Math.round(totalAmount)}</span>
+                <span className="text-primary">${Math.round(totalAmount)}</span>
               </div>
             </div>
             <div className="flex flex-col gap-2 w-full">

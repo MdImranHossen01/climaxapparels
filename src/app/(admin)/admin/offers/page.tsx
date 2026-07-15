@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import {
@@ -425,7 +425,7 @@ export default function ClientOffersPage() {
                     <TableHead>Client Name</TableHead>
                     <TableHead>Phone</TableHead>
                     <TableHead>Date</TableHead>
-                    <TableHead className="text-right">Total Offer (৳)</TableHead>
+                    <TableHead className="text-right">Total Offer ($)</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -436,7 +436,7 @@ export default function ClientOffersPage() {
                       <TableCell>{offer.clientName}</TableCell>
                       <TableCell>{offer.clientPhone}</TableCell>
                       <TableCell>{format(new Date(offer.date), 'dd MMM yyyy')}</TableCell>
-                      <TableCell className="text-right font-medium">৳{Math.round(offer.total)}</TableCell>
+                      <TableCell className="text-right font-medium">${Math.round(offer.total)}</TableCell>
                       <TableCell className="text-right space-x-2">
                         <Button
                           variant="outline"
@@ -612,7 +612,7 @@ export default function ClientOffersPage() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="fixed">Fixed Amount (৳)</SelectItem>
+                        <SelectItem value="fixed">Fixed Amount ($)</SelectItem>
                         <SelectItem value="percentage">Percentage (%)</SelectItem>
                       </SelectContent>
                     </Select>
@@ -630,7 +630,7 @@ export default function ClientOffersPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="delCharge">Delivery Charge (৳)</Label>
+                  <Label htmlFor="delCharge">Delivery Charge ($)</Label>
                   <Input
                     id="delCharge"
                     type="number"
@@ -640,7 +640,7 @@ export default function ClientOffersPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="serviceFeeOffer">Service Fee (৳) <span className="text-muted-foreground font-normal text-xs">— Optional</span></Label>
+                  <Label htmlFor="serviceFeeOffer">Service Fee ($) <span className="text-muted-foreground font-normal text-xs">— Optional</span></Label>
                   <Input
                     id="serviceFeeOffer"
                     type="number"
@@ -655,29 +655,29 @@ export default function ClientOffersPage() {
               <div className="bg-muted p-4 rounded-lg space-y-2.5 text-sm">
                 <div className="flex justify-between">
                   <span>Subtotal:</span>
-                  <span className="font-medium">৳{subtotal}</span>
+                  <span className="font-medium">${subtotal}</span>
                 </div>
                 {discount > 0 && (
                   <div className="flex justify-between text-success">
                      <span>Discount:</span>
-                     <span>- ৳{discount}</span>
+                     <span>- ${discount}</span>
                   </div>
                 )}
                 {deliveryCharge > 0 && (
                   <div className="flex justify-between">
                     <span>Delivery Charge:</span>
-                    <span>৳{deliveryCharge}</span>
+                    <span>${deliveryCharge}</span>
                   </div>
                 )}
                 {serviceFee > 0 && (
                   <div className="flex justify-between">
                     <span>Service Fee:</span>
-                    <span>৳{serviceFee}</span>
+                    <span>${serviceFee}</span>
                   </div>
                 )}
                 <div className="flex justify-between text-lg font-bold border-t pt-2">
                   <span>Total Offer Value:</span>
-                  <span>৳{total}</span>
+                  <span>${total}</span>
                 </div>
               </div>
             </div>
@@ -752,7 +752,7 @@ export default function ClientOffersPage() {
                                       onClick={() => toggleProductVariant(prod._id, v._id)}
                                       className="text-xs py-0.5 px-2 h-7"
                                     >
-                                      {label} (৳{v.salePrice || v.price})
+                                      {label} (${v.salePrice || v.price})
                                     </Button>
                                   );
                                 })}
@@ -762,7 +762,7 @@ export default function ClientOffersPage() {
                             )}
                           </TableCell>
                           <TableCell className="text-right">
-                            {!hasVariants && `৳${prod.salePrice || prod.price}`}
+                            {!hasVariants && `$${prod.salePrice || prod.price}`}
                           </TableCell>
                         </TableRow>
                       );
@@ -818,8 +818,8 @@ export default function ClientOffersPage() {
                       <TableRow key={i}>
                         <TableCell className="font-medium">{item.name}</TableCell>
                         <TableCell className="text-center">{item.quantity}</TableCell>
-                        <TableCell className="text-right">৳{Math.round(item.price)}</TableCell>
-                        <TableCell className="text-right font-medium">৳{Math.round(item.price * item.quantity)}</TableCell>
+                        <TableCell className="text-right">${Math.round(item.price)}</TableCell>
+                        <TableCell className="text-right font-medium">${Math.round(item.price * item.quantity)}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -830,29 +830,29 @@ export default function ClientOffersPage() {
                 <div className="w-64 space-y-2 text-sm border-t pt-3">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Subtotal:</span>
-                    <span className="font-medium">৳{Math.round(selectedOffer.subtotal)}</span>
+                    <span className="font-medium">${Math.round(selectedOffer.subtotal)}</span>
                   </div>
                   {selectedOffer.discount > 0 && (
                     <div className="flex justify-between text-success">
                       <span>Discount ({selectedOffer.discountType === 'percentage' ? `${selectedOffer.discountValue}%` : 'Fixed'}):</span>
-                      <span>- ৳{Math.round(selectedOffer.discount)}</span>
+                      <span>- ${Math.round(selectedOffer.discount)}</span>
                     </div>
                   )}
                   {selectedOffer.deliveryCharge > 0 && (
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Delivery Charge:</span>
-                      <span>৳{Math.round(selectedOffer.deliveryCharge)}</span>
+                      <span>${Math.round(selectedOffer.deliveryCharge)}</span>
                     </div>
                   )}
                   {selectedOffer.serviceFee > 0 && (
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Service Fee:</span>
-                      <span>৳{Math.round(selectedOffer.serviceFee)}</span>
+                      <span>${Math.round(selectedOffer.serviceFee)}</span>
                     </div>
                   )}
                   <div className="flex justify-between text-base font-bold border-t pt-2">
                     <span>Total Offer:</span>
-                    <span className="text-primary">৳{Math.round(selectedOffer.total)}</span>
+                    <span className="text-primary">${Math.round(selectedOffer.total)}</span>
                   </div>
                 </div>
               </div>

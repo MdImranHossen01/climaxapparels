@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import { 
@@ -179,9 +179,9 @@ export default function CouponsPage() {
                   <TableCell>
                     {coupon.discountType === 'percentage' 
                       ? `${coupon.discountValue}%` 
-                      : `৳${coupon.discountValue}`}
+                      : `$${coupon.discountValue}`}
                   </TableCell>
-                  <TableCell>৳{coupon.minPurchase}</TableCell>
+                  <TableCell>${coupon.minPurchase}</TableCell>
                   <TableCell>
                     <div className="flex items-center gap-1 text-xs">
                       <Calendar className="h-3 w-3" />

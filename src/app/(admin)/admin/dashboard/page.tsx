@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import * as React from 'react';
 import { useState, useEffect, useMemo } from 'react';
@@ -270,7 +270,7 @@ export default function AdminDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-purple-700">{stats?.roas ? `${stats.roas}x` : '—'}</div>
-            <p className="text-xs text-muted-foreground">Revenue per ৳1 Ad Spend</p>
+            <p className="text-xs text-muted-foreground">Revenue per $1 Ad Spend</p>
           </CardContent>
         </Card>
 
@@ -281,7 +281,7 @@ export default function AdminDashboard() {
             <LineChartIcon className="h-4 w-4 text-orange-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-orange-700">৳{Math.round(stats?.projectedMonthlyRevenue || 0).toLocaleString()}</div>
+            <div className="text-2xl font-bold text-orange-700">${Math.round(stats?.projectedMonthlyRevenue || 0).toLocaleString()}</div>
             <p className="text-xs text-muted-foreground">Projected next 30 days</p>
           </CardContent>
         </Card>
@@ -309,7 +309,7 @@ export default function AdminDashboard() {
                     {chartConfig[key].label}
                   </span>
                   <span className="text-base md:text-2xl leading-none font-bold">
-                    {key === 'orders' ? total[key].toLocaleString() : `৳${total[key].toLocaleString()}`}
+                    {key === 'orders' ? total[key].toLocaleString() : `$${total[key].toLocaleString()}`}
                   </span>
                 </button>
               ))}
@@ -445,7 +445,7 @@ export default function AdminDashboard() {
                   topCustomers.map((customer: any, i: number) => (
                     <div key={i} className="flex items-center justify-between text-xs">
                       <span className="font-medium truncate max-w-[120px]">{customer.name}</span>
-                      <span className="font-bold text-primary">৳{Math.round(customer.totalSpend || 0).toLocaleString()}</span>
+                      <span className="font-bold text-primary">${Math.round(customer.totalSpend || 0).toLocaleString()}</span>
                     </div>
                   ))
                 ) : (
@@ -483,7 +483,7 @@ export default function AdminDashboard() {
                   <div key={product._id} className="flex items-center justify-between group">
                     <div className="space-y-0.5">
                       <p className="text-xs font-semibold group-hover:text-primary transition-colors">{product.name}</p>
-                      <p className="text-[10px] text-muted-foreground">Unit Price: ৳{product.price}</p>
+                      <p className="text-[10px] text-muted-foreground">Unit Price: ${product.price}</p>
                     </div>
                     <Badge variant="destructive" className="h-5 px-1.5 text-[10px]">
                       {product.stock} Left
@@ -517,7 +517,7 @@ export default function AdminDashboard() {
                   <p className="text-sm font-bold leading-none truncate max-w-[150px]">{product._id}</p>
                   <p className="text-xs text-muted-foreground">{product.quantity} units sold</p>
                 </div>
-                <div className="text-sm font-black">৳{Math.round(product.revenue).toLocaleString()}</div>
+                <div className="text-sm font-black">${Math.round(product.revenue).toLocaleString()}</div>
               </div>
             ))}
             {(!topSellingProducts || topSellingProducts.length === 0) && (
@@ -557,7 +557,7 @@ export default function AdminDashboard() {
                     </div>
                   </div>
                   <div className="flex flex-col items-end gap-1">
-                    <div className="text-sm font-black text-primary">৳{(order?.totalAmount || 0).toLocaleString()}</div>
+                    <div className="text-sm font-black text-primary">${(order?.totalAmount || 0).toLocaleString()}</div>
                     <Badge 
                       variant={order.status === 'Delivered' ? 'default' : 'secondary'} 
                       className={`text-[10px] uppercase font-bold tracking-tighter ${order.status === 'Delivered' ? 'bg-emerald-500' : ''}`}

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import { Plus, Trash, Edit, Search } from 'lucide-react';
@@ -183,7 +183,7 @@ export default function ExpensesPage() {
                 <TableHead>Date</TableHead>
                 <TableHead>Title</TableHead>
                 <TableHead>Category</TableHead>
-                <TableHead className="text-right">Amount (Tk)</TableHead>
+                <TableHead className="text-right">Amount (USD)</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -209,7 +209,7 @@ export default function ExpensesPage() {
                     <TableCell>{format(new Date(expense.date), 'dd MMM yyyy')}</TableCell>
                     <TableCell className="font-medium">{expense.title}</TableCell>
                     <TableCell>{expense.category}</TableCell>
-                    <TableCell className="text-right font-semibold">৳{expense.amount.toLocaleString()}</TableCell>
+                    <TableCell className="text-right font-semibold">${expense.amount.toLocaleString()}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
                         <Button

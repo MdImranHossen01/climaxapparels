@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import {
   Dialog,
@@ -242,11 +242,11 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
 
             <div className="flex items-baseline gap-3 mb-4 pb-4 border-b border-gray-100">
               <span className="text-3xl font-bold text-primary">
-                ৳{Math.round(displaySalePrice || displayPrice)}
+                ${Math.round(displaySalePrice || displayPrice)}
               </span>
               {displaySalePrice != null && (
                 <span className="text-lg line-through text-gray-400">
-                  ৳{Math.round(displayPrice)}
+                  ${Math.round(displayPrice)}
                 </span>
               )}
             </div>

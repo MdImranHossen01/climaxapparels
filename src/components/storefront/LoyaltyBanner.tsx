@@ -28,7 +28,7 @@ export function LoyaltyBanner({ settings, layout }: LoyaltyBannerProps) {
               LOYALTY CLUB
             </h2>
             <p className={`text-gray-400 ${layout === 'v3' ? 'lg:text-sm' : 'text-lg'} max-w-md`}>
-              Unlock exclusive lifetime benefits. Spend <span className="text-white font-bold">৳{threshold}</span> once and earn <span className="text-primary font-bold">{percentage}% tokens</span> on every future purchase!
+              Unlock exclusive lifetime benefits. Spend <span className="text-white font-bold">${threshold}</span> once and earn <span className="text-primary font-bold">{percentage}% tokens</span> on every future purchase!
             </p>
 
             <div className="flex flex-wrap gap-4">
@@ -51,7 +51,7 @@ export function LoyaltyBanner({ settings, layout }: LoyaltyBannerProps) {
                 <Trophy className={`h-6 w-6 ${layout === 'v3' ? 'lg:h-5 lg:w-5' : ''} text-primary`} />
               </div>
               <h3 className={`font-bold ${layout === 'v3' ? 'lg:text-sm lg:mb-0.5' : 'mb-1'}`}>Activate</h3>
-              <p className="text-xs text-neutral-400">Buy products worth ৳{threshold} in a single order.</p>
+              <p className="text-xs text-neutral-400">Buy products worth ${threshold} in a single order.</p>
             </div>
 
             <div className={`p-6 ${layout === 'v3' ? 'lg:p-4 lg:rounded-xl' : 'rounded-2xl'} bg-white/5 border border-white/10 hover:border-primary/50 transition-colors group`}>

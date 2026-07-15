@@ -618,7 +618,7 @@ export function ProductForm({ initialData }: ProductFormProps) {
                                         />
                                       </div>
                                       <div>
-                                        <Label className="text-xs font-medium text-muted-foreground">Price (Tk)</Label>
+                                        <Label className="text-xs font-medium text-muted-foreground">Price (USD)</Label>
                                         <Input
                                           type="number"
                                           value={form.watch(`variants.${colorIndex}.sizes.${sizeIndex}.price`) ?? ''}
@@ -634,7 +634,7 @@ export function ProductForm({ initialData }: ProductFormProps) {
                                         />
                                       </div>
                                       <div>
-                                        <Label className="text-xs font-medium text-muted-foreground">Purchase (Tk)</Label>
+                                        <Label className="text-xs font-medium text-muted-foreground">Purchase (USD)</Label>
                                         <Input
                                           type="number"
                                           value={form.watch(`variants.${colorIndex}.sizes.${sizeIndex}.purchasePrice`) ?? ''}
@@ -689,7 +689,7 @@ export function ProductForm({ initialData }: ProductFormProps) {
                                         />
                                       </div>
                                       <div>
-                                        <Label className="text-xs font-medium text-muted-foreground">Sale Price (Tk)</Label>
+                                        <Label className="text-xs font-medium text-muted-foreground">Sale Price (USD)</Label>
                                         <Input
                                           type="number"
                                           placeholder="Optional"
@@ -728,7 +728,7 @@ export function ProductForm({ initialData }: ProductFormProps) {
                     name="price"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Regular Price (Tk)</FormLabel>
+                        <FormLabel>Regular Price (USD)</FormLabel>
                         <FormControl>
                           <Input 
                             type="number" 
@@ -757,7 +757,7 @@ export function ProductForm({ initialData }: ProductFormProps) {
                     name="purchasePrice"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Purchase Price (Tk)</FormLabel>
+                        <FormLabel>Purchase Price (USD)</FormLabel>
                         <FormControl>
                           <Input 
                             type="number" 
@@ -808,7 +808,7 @@ export function ProductForm({ initialData }: ProductFormProps) {
                     name="salePrice"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Sale Price (Tk)</FormLabel>
+                        <FormLabel>Sale Price (USD)</FormLabel>
                         <FormControl>
                           <Input 
                             type="number" 

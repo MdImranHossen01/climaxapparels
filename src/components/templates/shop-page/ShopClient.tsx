@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
@@ -224,7 +224,7 @@ export default function ShopClient({ initialProducts, initialCategories, searchP
         <h3 className="text-sm font-bold uppercase tracking-wider mb-4">Price Range</h3>
         <div className="flex items-center gap-2">
           <div className="relative flex-1">
-            <span className="absolute left-2.5 top-2.5 text-xs text-muted-foreground">৳</span>
+            <span className="absolute left-2.5 top-2.5 text-xs text-muted-foreground">$</span>
             <Input
               type="number"
               placeholder="Min"
@@ -235,7 +235,7 @@ export default function ShopClient({ initialProducts, initialCategories, searchP
           </div>
           <span className="text-muted-foreground text-xs font-medium">to</span>
           <div className="relative flex-1">
-            <span className="absolute left-2.5 top-2.5 text-xs text-muted-foreground">৳</span>
+            <span className="absolute left-2.5 top-2.5 text-xs text-muted-foreground">$</span>
             <Input
               type="number"
               placeholder="Max"
@@ -349,7 +349,7 @@ export default function ShopClient({ initialProducts, initialCategories, searchP
               )}
               {(minPrice !== '' || maxPrice !== '') && (
                 <Badge variant="secondary" className="gap-1 rounded-full px-3 py-1">
-                  Price: ৳{minPrice || '0'} - ৳{maxPrice || '∞'} <X className="h-3 w-3 cursor-pointer" onClick={() => { setMinPrice(''); setMaxPrice(''); }} />
+                  Price: ${minPrice || '0'} - ${maxPrice || '∞'} <X className="h-3 w-3 cursor-pointer" onClick={() => { setMinPrice(''); setMaxPrice(''); }} />
                 </Badge>
               )}
               {showOnlyNew && (

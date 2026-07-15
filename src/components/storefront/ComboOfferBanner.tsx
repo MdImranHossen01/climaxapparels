@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import { Ticket, Plus, Wallet, Clock } from 'lucide-react';
@@ -77,7 +77,7 @@ export function ComboOfferBanner({ activeCoupon, settings, layout }: ComboOfferB
 
   const discountText = activeCoupon.discountType === 'percentage'
     ? `${activeCoupon.discountValue}%`
-    : `৳${activeCoupon.discountValue}`;
+    : `$${activeCoupon.discountValue}`;
 
   const expiryDateValue = activeCoupon.expiryDate;
   const isValidDate = !!expiryDateValue && !isNaN(new Date(expiryDateValue).getTime());

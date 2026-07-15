@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+﻿/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -32,7 +32,7 @@ import {
 import Image from 'next/image';
 import { generateHtml } from '@/lib/server-html';
 
-const CURRENCY_SYMBOL = '৳';
+const CURRENCY_SYMBOL = '$';
 
 interface ProductDetailsV5ClientProps {
   product: any;

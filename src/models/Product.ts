@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+﻿/* eslint-disable @typescript-eslint/no-explicit-any */
 import mongoose, { Document, Model, Schema } from 'mongoose';
 
 export interface IProduct extends Document {
@@ -104,7 +104,7 @@ ProductSchema.pre('validate', function(this: any) {
   // Main product validation
   if (this.salePrice !== undefined && this.salePrice !== null && this.salePrice > this.price) {
     throw new Error(
-      `Sale price (৳${this.salePrice}) should be lower than or equal to regular price (৳${this.price})`
+      `Sale price ($${this.salePrice}) should be lower than or equal to regular price ($${this.price})`
     );
   }
 
@@ -119,7 +119,7 @@ ProductSchema.pre('validate', function(this: any) {
       ) {
         const variantDesc = [v.color, v.size].filter(Boolean).join(' / ') || `at index ${index}`;
         throw new Error(
-          `Variant "${variantDesc}" has a sale price (৳${v.salePrice}) higher than its regular price (৳${v.price})`
+          `Variant "${variantDesc}" has a sale price ($${v.salePrice}) higher than its regular price ($${v.price})`
         );
       }
     });

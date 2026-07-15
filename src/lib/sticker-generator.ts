@@ -1,4 +1,4 @@
-import { format, isValid } from 'date-fns';
+﻿import { format, isValid } from 'date-fns';
 
 function generateBarcodeHtml(value: string): string {
   const CODE39_MAP: Record<string, string> = {
@@ -128,7 +128,7 @@ export async function printStickerInvoice(orderOrOrders: any | any[], settings: 
               <div class="table-row">
                 <div class="table-cell table-cell-split">
                   <span style="font-weight: 700;">COD</span>
-                  <span style="font-weight: 700;">৳${codAmount}</span>
+                  <span style="font-weight: 700;">$${codAmount}</span>
                 </div>
               </div>
               <div class="table-row">

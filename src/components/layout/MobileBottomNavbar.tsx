@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -153,7 +153,7 @@ export function MobileBottomNavbar() {
                       {profile && (
                         <div className="mt-1.5 flex items-center gap-1.5 bg-primary/10 px-2.5 py-0.5 rounded-full w-fit border border-primary/20">
                           <Package className="h-3.5 w-3.5 text-primary" />
-                          <span className="text-[11px] font-black text-primary">৳{profile.walletBalance || 0} Tokens</span>
+                          <span className="text-[11px] font-black text-primary">${profile.walletBalance || 0} Tokens</span>
                         </div>
                       )}
                     </div>

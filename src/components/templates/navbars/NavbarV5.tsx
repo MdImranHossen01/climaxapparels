@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+﻿/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
@@ -189,7 +189,7 @@ export default function NavbarV5() {
                                 )}
                                 <div className="flex-1 min-w-0">
                                   <p className="text-xs font-semibold truncate group-hover:text-primary transition-colors">{product.name}</p>
-                                  <p className="text-[11px] text-primary font-bold">৳{price?.toLocaleString()}</p>
+                                  <p className="text-[11px] text-primary font-bold">${price?.toLocaleString()}</p>
                                 </div>
                               </Link>
                             </li>
@@ -269,7 +269,7 @@ export default function NavbarV5() {
                         {profile && (
                           <div className="mt-1.5 flex items-center gap-1.5 bg-primary/10 px-2 py-0.5 rounded-full w-fit border border-primary/20">
                             <Package className="h-3 w-3 text-primary" />
-                            <span className="text-[10px] font-bold text-primary">৳{profile.walletBalance || 0} Tokens</span>
+                            <span className="text-[10px] font-bold text-primary">${profile.walletBalance || 0} Tokens</span>
                           </div>
                         )}
                       </div>

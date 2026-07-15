@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import {
   Dialog,
@@ -154,11 +154,11 @@ export function QuickAddModal({ product, isOpen, onClose }: QuickAddModalProps) 
             <h4 className="font-semibold line-clamp-1">{product.name}</h4>
             <div className="flex items-center gap-2 mt-1">
               <span className="font-bold text-primary">
-                ৳{Math.round(activeVariant?.salePrice ?? activeVariant?.price ?? product.salePrice ?? product.price)}
+                ${Math.round(activeVariant?.salePrice ?? activeVariant?.price ?? product.salePrice ?? product.price)}
               </span>
               {(activeVariant?.salePrice ?? product.salePrice) != null && (
                 <span className="text-xs line-through text-muted-foreground">
-                  ৳{Math.round(activeVariant?.price ?? product.price)}
+                  ${Math.round(activeVariant?.price ?? product.price)}
                 </span>
               )}
             </div>

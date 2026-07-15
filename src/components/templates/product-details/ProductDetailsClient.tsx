@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+﻿/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -50,7 +50,7 @@ import {
 import { fbEvent } from '@/lib/fpixel';
 import { ttEvent } from '@/lib/tiktok';
 
-const CURRENCY_SYMBOL = '৳';
+const CURRENCY_SYMBOL = '$';
 
 interface ProductDetailsClientProps {
   product: any;

@@ -102,7 +102,7 @@ export function ExpenseForm({ initialData, onSuccess }: ExpenseFormProps) {
             name="amount"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Amount (Tk)</FormLabel>
+                <FormLabel>Amount (USD)</FormLabel>
                 <FormControl>
                   <Input 
                     type="number" 

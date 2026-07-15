@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import {
@@ -1038,12 +1038,12 @@ export default function OrderDetailsDialog({
                         <div className="flex items-center gap-2 mt-0.5">
                           {item.color && <Badge variant="outline" className="text-[10px] py-0 px-1.5 h-4 bg-muted/50">{item.color}</Badge>}
                           {item.size && <Badge variant="outline" className="text-[10px] py-0 px-1.5 h-4 bg-muted/50">Size: {item.size}</Badge>}
-                          <span className="text-xs text-muted-foreground ml-1">৳{Math.round(Number(item.price) || 0)} × {item.quantity}</span>
+                          <span className="text-xs text-muted-foreground ml-1">${Math.round(Number(item.price) || 0)} × {item.quantity}</span>
                         </div>
                       </div>
                     </div>
                     <div className="font-bold">
-                      ৳{Math.round(Number(item.price || 0) * (item.quantity || 0))}
+                      ${Math.round(Number(item.price || 0) * (item.quantity || 0))}
                     </div>
                   </div>
                 ))}
@@ -1051,7 +1051,7 @@ export default function OrderDetailsDialog({
               
               <div className="pt-4 border-t flex justify-between items-center text-lg">
                 <span className="font-bold">Total Amount:</span>
-                <span className="font-black text-primary">৳{Math.round(Number(order.totalAmount) || 0)}</span>
+                <span className="font-black text-primary">${Math.round(Number(order.totalAmount) || 0)}</span>
               </div>
             </div>
 

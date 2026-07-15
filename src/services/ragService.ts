@@ -223,8 +223,8 @@ export async function retrieveRelevantContext(
       activeCoupons.forEach((coupon: any) => {
         const discountText = coupon.discountType === 'percentage'
           ? `${coupon.discountValue}% off`
-          : `৳${coupon.discountValue} off`;
-        contextString += `- Code: ${coupon.code} | Discount: ${discountText} | Min Purchase: ৳${coupon.minPurchase} | Expires: ${new Date(coupon.expiryDate).toLocaleDateString('en-BD')}\n`;
+          : `$${coupon.discountValue} off`;
+        contextString += `- Code: ${coupon.code} | Discount: ${discountText} | Min Purchase: $${coupon.minPurchase} | Expires: ${new Date(coupon.expiryDate).toLocaleDateString('en-BD')}\n`;
       });
       contextString += `\n`;
     } else {
@@ -236,7 +236,7 @@ export async function retrieveRelevantContext(
       contextString += `Products Currently on Sale/Discount:\n`;
       discountedProducts.forEach((product: any) => {
         const discount = Math.round(((product.price - product.salePrice) / product.price) * 100);
-        contextString += `- [${product.name}](/product/${product.slug || product._id}) | Original: ৳${product.price} | Sale Price: ৳${product.salePrice} | Discount: ${discount}% off\n`;
+        contextString += `- [${product.name}](/product/${product.slug || product._id}) | Original: $${product.price} | Sale Price: $${product.salePrice} | Discount: ${discount}% off\n`;
       });
       contextString += `\n`;
     } else {

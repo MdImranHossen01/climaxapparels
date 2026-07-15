@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import {
@@ -329,7 +329,7 @@ export default function ClientBillsPage() {
     const { value: paidAmount } = await Swal.fire({
       title: 'Update Payment Cash-in',
       input: 'number',
-      inputLabel: 'Amount Paid (৳)',
+      inputLabel: 'Amount Paid ($)',
       inputValue: currentDue,
       showCancelButton: true,
       inputValidator: (value) => {
@@ -445,7 +445,7 @@ export default function ClientBillsPage() {
             <FileText className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">৳{totalBilled.toLocaleString()}</div>
+            <div className="text-2xl font-bold">${totalBilled.toLocaleString()}</div>
             <p className="text-xs text-muted-foreground">Cumulative client invoicing</p>
           </CardContent>
         </Card>
@@ -455,7 +455,7 @@ export default function ClientBillsPage() {
             <DollarSign className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-700">৳{totalCollected.toLocaleString()}</div>
+            <div className="text-2xl font-bold text-green-700">${totalCollected.toLocaleString()}</div>
             <p className="text-xs text-muted-foreground">Payments received</p>
           </CardContent>
         </Card>
@@ -465,7 +465,7 @@ export default function ClientBillsPage() {
             <Users className="h-4 w-4 text-orange-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-orange-700">৳{accountsReceivable.toLocaleString()}</div>
+            <div className="text-2xl font-bold text-orange-700">${accountsReceivable.toLocaleString()}</div>
             <p className="text-xs text-muted-foreground">Outstanding due balances</p>
           </CardContent>
         </Card>
@@ -575,9 +575,9 @@ export default function ClientBillsPage() {
                     <div className="font-medium">{bill.clientName}</div>
                     <div className="text-xs text-muted-foreground">{bill.clientPhone}</div>
                   </TableCell>
-                  <TableCell className="text-right font-semibold">৳{bill.gTotal}</TableCell>
-                  <TableCell className="text-right text-green-600">৳{bill.cashIn}</TableCell>
-                  <TableCell className="text-right text-orange-600 font-semibold">৳{bill.currentBillDue}</TableCell>
+                  <TableCell className="text-right font-semibold">${bill.gTotal}</TableCell>
+                  <TableCell className="text-right text-green-600">${bill.cashIn}</TableCell>
+                  <TableCell className="text-right text-orange-600 font-semibold">${bill.currentBillDue}</TableCell>
                   <TableCell className="text-center">
                     <Badge variant={bill.status === 'Paid' ? 'default' : 'destructive'} className={bill.status === 'Paid' ? 'bg-green-600 text-white border-none' : ''}>
                       {bill.status}
@@ -754,7 +754,7 @@ export default function ClientBillsPage() {
                                   <div className="flex-1 min-w-0">
                                     <div className="text-sm font-medium">{p.name}</div>
                                     <div className="text-xs text-muted-foreground">
-                                      ৳{p.salePrice || p.price} · Stock: {p.stock ?? 0}
+                                      ${p.salePrice || p.price} · Stock: {p.stock ?? 0}
                                     </div>
                                   </div>
                                 </label>
@@ -790,7 +790,7 @@ export default function ClientBillsPage() {
                                         >
                                           {vLabel}
                                           <span className={`ml-1 ${isVariantSelected ? 'opacity-80' : 'opacity-60'}`}>
-                                            ৳{vPrice}
+                                            ${vPrice}
                                           </span>
                                           {v.stock !== undefined && (
                                             <span className={`ml-1 text-[10px] ${isVariantSelected ? 'opacity-70' : 'opacity-40'}`}>
@@ -880,7 +880,7 @@ export default function ClientBillsPage() {
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="deliveryCharge">Delivery Charge (৳)</Label>
+                    <Label htmlFor="deliveryCharge">Delivery Charge ($)</Label>
                     <Input
                       id="deliveryCharge"
                       type="number"
@@ -889,7 +889,7 @@ export default function ClientBillsPage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="prevDue">Previous Due (৳)</Label>
+                    <Label htmlFor="prevDue">Previous Due ($)</Label>
                     <Input
                       id="prevDue"
                       type="number"
@@ -900,7 +900,7 @@ export default function ClientBillsPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="serviceFee">Service Fee (৳) <span className="text-muted-foreground font-normal text-xs">— Optional</span></Label>
+                  <Label htmlFor="serviceFee">Service Fee ($) <span className="text-muted-foreground font-normal text-xs">— Optional</span></Label>
                   <Input
                     id="serviceFee"
                     type="number"
@@ -918,7 +918,7 @@ export default function ClientBillsPage() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="fixed">Fixed (৳)</SelectItem>
+                        <SelectItem value="fixed">Fixed ($)</SelectItem>
                         <SelectItem value="percentage">Percent (%)</SelectItem>
                       </SelectContent>
                     </Select>
@@ -929,14 +929,14 @@ export default function ClientBillsPage() {
                       type="number"
                       value={discountValue || ''}
                       onChange={(e) => setDiscountValue(Math.max(0, parseFloat(e.target.value) || 0))}
-                      placeholder={discountType === 'percentage' ? '%' : '৳'}
+                      placeholder={discountType === 'percentage' ? '%' : '$'}
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="cashIn">Cash-in (Paid) (৳)</Label>
+                    <Label htmlFor="cashIn">Cash-in (Paid) ($)</Label>
                     <Input
                       id="cashIn"
                       type="number"
@@ -973,47 +973,47 @@ export default function ClientBillsPage() {
                 <h4 className="font-bold border-b pb-2 mb-2 text-base">Bill Summary</h4>
                 <div className="flex justify-between">
                   <span>Subtotal:</span>
-                  <span className="font-semibold">৳{subtotal.toLocaleString()}</span>
+                  <span className="font-semibold">${subtotal.toLocaleString()}</span>
                 </div>
                 {deliveryCharge > 0 && (
                   <div className="flex justify-between">
                     <span>Delivery Charge:</span>
-                    <span>+ ৳{deliveryCharge.toLocaleString()}</span>
+                    <span>+ ${deliveryCharge.toLocaleString()}</span>
                   </div>
                 )}
                 {serviceFee > 0 && (
                   <div className="flex justify-between">
                     <span>Service Fee:</span>
-                    <span>+ ৳{serviceFee.toLocaleString()}</span>
+                    <span>+ ${serviceFee.toLocaleString()}</span>
                   </div>
                 )}
                 {discount > 0 && (
                   <div className="flex justify-between text-green-600 font-medium">
                     <span>Discount {discountType === 'percentage' && `(${discountValue}%)`}:</span>
-                    <span>- ৳{discount.toLocaleString()}</span>
+                    <span>- ${discount.toLocaleString()}</span>
                   </div>
                 )}
                 <div className="flex justify-between border-t pt-2 font-bold text-base">
                   <span>Total Bill:</span>
-                  <span>৳{total.toLocaleString()}</span>
+                  <span>${total.toLocaleString()}</span>
                 </div>
                 {prevDue > 0 && (
                   <div className="flex justify-between text-muted-foreground">
                     <span>Previous Due:</span>
-                    <span>+ ৳{prevDue.toLocaleString()}</span>
+                    <span>+ ${prevDue.toLocaleString()}</span>
                   </div>
                 )}
                 <div className="flex justify-between border-t pt-2 font-bold text-lg text-primary">
                   <span>Grand Total:</span>
-                  <span>৳{gTotal.toLocaleString()}</span>
+                  <span>${gTotal.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between text-green-700 border-t pt-2">
                   <span>Cash-in:</span>
-                  <span>৳{cashIn.toLocaleString()}</span>
+                  <span>${cashIn.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between border-t pt-2 font-bold text-base text-destructive">
                   <span>Remaining Due:</span>
-                  <span>৳{currentBillDue.toLocaleString()}</span>
+                  <span>${currentBillDue.toLocaleString()}</span>
                 </div>
               </div>
             </div>
@@ -1096,8 +1096,8 @@ export default function ClientBillsPage() {
                         <th className="text-left px-4 py-2.5 font-semibold text-muted-foreground">#</th>
                         <th className="text-left px-4 py-2.5 font-semibold text-muted-foreground">Product / Description</th>
                         <th className="text-center px-4 py-2.5 font-semibold text-muted-foreground">Qty</th>
-                        <th className="text-right px-4 py-2.5 font-semibold text-muted-foreground">Rate (৳)</th>
-                        <th className="text-right px-4 py-2.5 font-semibold text-muted-foreground">Amount (৳)</th>
+                        <th className="text-right px-4 py-2.5 font-semibold text-muted-foreground">Rate ($)</th>
+                        <th className="text-right px-4 py-2.5 font-semibold text-muted-foreground">Amount ($)</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y">
@@ -1119,18 +1119,18 @@ export default function ClientBillsPage() {
                   <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Financial Summary</p>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Subtotal</span>
-                    <span>৳{Math.round(selectedBill.subtotal || 0).toLocaleString()}</span>
+                    <span>${Math.round(selectedBill.subtotal || 0).toLocaleString()}</span>
                   </div>
                   {selectedBill.deliveryCharge > 0 && (
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Delivery Charge</span>
-                      <span>+ ৳{Math.round(selectedBill.deliveryCharge).toLocaleString()}</span>
+                      <span>+ ${Math.round(selectedBill.deliveryCharge).toLocaleString()}</span>
                     </div>
                   )}
                   {selectedBill.serviceFee > 0 && (
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Service Fee</span>
-                      <span>+ ৳{Math.round(selectedBill.serviceFee).toLocaleString()}</span>
+                      <span>+ ${Math.round(selectedBill.serviceFee).toLocaleString()}</span>
                     </div>
                   )}
                   {selectedBill.discount > 0 && (
@@ -1141,32 +1141,32 @@ export default function ClientBillsPage() {
                           ? ` (${selectedBill.discountValue}%)`
                           : ''}
                       </span>
-                      <span>- ৳{Math.round(selectedBill.discount).toLocaleString()}</span>
+                      <span>- ${Math.round(selectedBill.discount).toLocaleString()}</span>
                     </div>
                   )}
                   <div className="flex justify-between border-t pt-2">
                     <span className="font-semibold">Total Bill</span>
-                    <span className="font-semibold">৳{Math.round(selectedBill.total || 0).toLocaleString()}</span>
+                    <span className="font-semibold">${Math.round(selectedBill.total || 0).toLocaleString()}</span>
                   </div>
                   {selectedBill.prevDue > 0 && (
                     <div className="flex justify-between text-muted-foreground">
                       <span>Previous Due</span>
-                      <span>+ ৳{Math.round(selectedBill.prevDue).toLocaleString()}</span>
+                      <span>+ ${Math.round(selectedBill.prevDue).toLocaleString()}</span>
                     </div>
                   )}
                   <div className="flex justify-between border-t pt-2">
                     <span className="font-bold text-base">Grand Total</span>
-                    <span className="font-bold text-base text-primary">৳{Math.round(selectedBill.gTotal || 0).toLocaleString()}</span>
+                    <span className="font-bold text-base text-primary">${Math.round(selectedBill.gTotal || 0).toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between text-green-700">
                     <span>Cash Received</span>
-                    <span className="font-semibold">৳{Math.round(selectedBill.cashIn || 0).toLocaleString()}</span>
+                    <span className="font-semibold">${Math.round(selectedBill.cashIn || 0).toLocaleString()}</span>
                   </div>
                   <div className={`flex justify-between border-t pt-2 font-bold text-base ${
                     selectedBill.currentBillDue > 0 ? 'text-destructive' : 'text-green-600'
                   }`}>
                     <span>Remaining Due</span>
-                    <span>৳{Math.round(selectedBill.currentBillDue || 0).toLocaleString()}</span>
+                    <span>${Math.round(selectedBill.currentBillDue || 0).toLocaleString()}</span>
                   </div>
                 </div>
 

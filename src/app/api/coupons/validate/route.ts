@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+﻿import { NextRequest, NextResponse } from 'next/server';
 import connectToDatabase from '@/lib/db';
 import Coupon from '@/models/Coupon';
 import { auth } from '@/auth';
@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
 
     if (validatedTotal < coupon.minPurchase) {
       return NextResponse.json({ 
-        message: `Minimum purchase of ৳${coupon.minPurchase} required for this coupon` 
+        message: `Minimum purchase of $${coupon.minPurchase} required for this coupon` 
       }, { status: 400 });
     }
 

@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+﻿/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import Link from 'next/link';
@@ -340,15 +340,15 @@ export default function ProductCardV1({ product: initialProduct, isFlashSale }: 
             {product.salePrice !== undefined && product.salePrice !== null ? (
               <>
                 <span className="text-xs line-through text-muted-foreground leading-none mb-1">
-                  ৳{product.price ? Math.round(product.price) : '0'}
+                  ${product.price ? Math.round(product.price) : '0'}
                 </span>
                 <span className="font-bold text-lg text-primary leading-none">
-                  ৳{Math.round(product.salePrice)}
+                  ${Math.round(product.salePrice)}
                 </span>
               </>
             ) : (
               <span className="font-bold text-lg text-primary leading-none">
-                ৳{product.price ? Math.round(product.price) : '0'}
+                ${product.price ? Math.round(product.price) : '0'}
               </span>
             )}
           </div>

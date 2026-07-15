@@ -1,4 +1,4 @@
-import { format, isValid } from 'date-fns';
+﻿import { format, isValid } from 'date-fns';
 
 export async function generateInvoicePDF(orderOrOrders: any | any[], settings: any, mode: 'download' | 'print' = 'download') {
   const orders = Array.isArray(orderOrOrders) ? orderOrOrders : [orderOrOrders];
@@ -115,8 +115,8 @@ export async function generateInvoicePDF(orderOrOrders: any | any[], settings: a
                   ${item.color || item.size ? `<br><small style="color: var(--muted-foreground)">Color: ${item.color || 'N/A'} | Size: ${item.size || 'N/A'}</small>` : ''}
                 </td>
                 <td class="text-center">${item.quantity}</td>
-                <td class="text-right">৳${Math.round(item.price)}</td>
-                <td class="text-right">৳${Math.round(item.price * item.quantity)}</td>
+                <td class="text-right">$${Math.round(item.price)}</td>
+                <td class="text-right">$${Math.round(item.price * item.quantity)}</td>
               </tr>
             `).join('')}
           </tbody>
@@ -126,23 +126,23 @@ export async function generateInvoicePDF(orderOrOrders: any | any[], settings: a
           <div class="totals-box">
             <div class="total-row">
               <span>Subtotal:</span>
-              <span>৳${Math.round(subtotal)}</span>
+              <span>$${Math.round(subtotal)}</span>
             </div>
             <div class="total-row">
               <span>Shipping Charge:</span>
-              <span>৳${Math.round(deliveryCharge)}</span>
+              <span>$${Math.round(deliveryCharge)}</span>
             </div>
             <div class="total-row" style="${couponDiscount > 0 ? 'color: var(--foreground);' : ''}">
               <span>Coupon Discount:</span>
-              <span>${couponDiscount > 0 ? `- ৳${Math.round(couponDiscount)}` : '৳0'}</span>
+              <span>${couponDiscount > 0 ? `- $${Math.round(couponDiscount)}` : '$0'}</span>
             </div>
             <div class="total-row" style="${walletUsed > 0 ? 'color: var(--foreground);' : ''}">
               <span>Loyalty Discount:</span>
-              <span>${walletUsed > 0 ? `- ৳${Math.round(walletUsed)}` : '৳0'}</span>
+              <span>${walletUsed > 0 ? `- $${Math.round(walletUsed)}` : '$0'}</span>
             </div>
             <div class="total-row grand-total">
               <span>Total Amount:</span>
-              <span>৳${totalAmount}</span>
+              <span>$${totalAmount}</span>
             </div>
           </div>
         </div>

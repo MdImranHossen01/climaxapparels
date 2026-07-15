@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import {
@@ -229,9 +229,9 @@ export default function AccountsLedgerPage() {
                 )}
               </CardHeader>
               <CardContent className="space-y-3">
-                <div className="text-3xl font-bold tracking-tight">৳{Math.round(acc.currentBalance)}</div>
+                <div className="text-3xl font-bold tracking-tight">${Math.round(acc.currentBalance)}</div>
                 <div className="flex items-center justify-between text-xs text-muted-foreground border-t pt-2">
-                  <span>Opening: ৳{Math.round(acc.openingBalance || 0)}</span>
+                  <span>Opening: ${Math.round(acc.openingBalance || 0)}</span>
                   <Button
                     variant="ghost"
                     size="xs"
@@ -315,8 +315,8 @@ export default function AccountsLedgerPage() {
                     <TableHead>Account</TableHead>
                     <TableHead>Description</TableHead>
                     <TableHead>Type</TableHead>
-                    <TableHead className="text-right">Amount (৳)</TableHead>
-                    <TableHead className="text-right">Running Balance (৳)</TableHead>
+                    <TableHead className="text-right">Amount ($)</TableHead>
+                    <TableHead className="text-right">Running Balance ($)</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -344,8 +344,8 @@ export default function AccountsLedgerPage() {
                           {tx.type === 'debit' ? 'Debit (+)' : 'Credit (-)'}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-right font-medium">৳{Math.round(tx.amount)}</TableCell>
-                      <TableCell className="text-right font-semibold">৳{Math.round(tx.balanceAfter)}</TableCell>
+                      <TableCell className="text-right font-medium">${Math.round(tx.amount)}</TableCell>
+                      <TableCell className="text-right font-semibold">${Math.round(tx.balanceAfter)}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -372,7 +372,7 @@ export default function AccountsLedgerPage() {
           </DialogHeader>
           <form onSubmit={handleUpdateOpeningBalance} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="openingBal">Opening Balance (৳)</Label>
+              <Label htmlFor="openingBal">Opening Balance ($)</Label>
               <Input
                 id="openingBal"
                 type="number"
@@ -484,7 +484,7 @@ export default function AccountsLedgerPage() {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="txAmount">Amount (৳)</Label>
+                <Label htmlFor="txAmount">Amount ($)</Label>
                 <Input
                   id="txAmount"
                   type="number"

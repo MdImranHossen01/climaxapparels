@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect, useRef, Suspense } from 'react';
 import Image from 'next/image';
@@ -679,7 +679,7 @@ function CheckoutContent() {
                           </button>
                         </div>
                         <div className="text-right">
-                          <p className="text-sm font-bold text-primary">৳{Math.round(item.price * item.quantity)}</p>
+                          <p className="text-sm font-bold text-primary">${Math.round(item.price * item.quantity)}</p>
                           {syncData?.validItems?.find((v: any) =>
                             v.productId === item.productId &&
                             v.color === item.color &&
@@ -704,7 +704,7 @@ function CheckoutContent() {
               <Separator />
               <div className="flex justify-between items-center pt-2">
                 <span className="text-base font-bold">Items Total</span>
-                <span className="text-xl font-black text-primary">৳{Math.round(totalAmount)}</span>
+                <span className="text-xl font-black text-primary">${Math.round(totalAmount)}</span>
               </div>
             </CardContent>
           </Card>
@@ -853,44 +853,44 @@ function CheckoutContent() {
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Subtotal</span>
-                      <span>৳{Math.round(totalAmount + totalProductDiscount)}</span>
+                      <span>${Math.round(totalAmount + totalProductDiscount)}</span>
                     </div>
                     <div className="flex justify-between text-sm text-green-600">
                       <span>Product Discount</span>
-                      <span>- ৳{Math.round(totalProductDiscount)}</span>
+                      <span>- ${Math.round(totalProductDiscount)}</span>
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Coupon Discount</span>
                       <span className={couponDiscount > 0 ? "text-green-600 font-bold" : ""}>
-                        - ৳{Math.round(couponDiscount)}
+                        - ${Math.round(couponDiscount)}
                       </span>
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Shipping</span>
                       <span className={isFreeDelivery ? "text-green-600 font-black" : "text-primary font-bold"}>
-                        {isFreeDelivery ? 'FREE' : `৳${deliveryCharge}`}
+                        {isFreeDelivery ? 'FREE' : `$${deliveryCharge}`}
                       </span>
                     </div>
                     {isFreeDelivery && (
                       <p className="text-[10px] text-green-600 font-bold text-right -mt-1">
-                        Free shipping applied (Order ≥ ৳{freeDeliveryThreshold})
+                        Free shipping applied (Order ≥ ${freeDeliveryThreshold})
                       </p>
                     )}
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Loyalty Discount</span>
                       <span className={walletAmountToUse > 0 ? "text-primary font-bold" : ""}>
-                        - ৳{Math.round(walletAmountToUse)}
+                        - ${Math.round(walletAmountToUse)}
                       </span>
                     </div>
                     <Separator className="mt-4" />
                     <div className="flex justify-between text-lg font-black pt-2">
                       <span>Final Total</span>
-                      <span className="text-primary">৳{Math.round(finalTotal)}</span>
+                      <span className="text-primary">${Math.round(finalTotal)}</span>
                     </div>
                     {potentialReward > 0 && (
                       <div className="mt-4 p-3 rounded-lg bg-primary/10 border border-primary/20 text-center">
                         <p className="text-[10px] font-bold text-primary uppercase tracking-widest mb-1">Loyalty Perk</p>
-                        <p className="text-xs font-bold">You will earn <span className="text-primary">৳{potentialReward}</span> tokens from this order!</p>
+                        <p className="text-xs font-bold">You will earn <span className="text-primary">${potentialReward}</span> tokens from this order!</p>
                       </div>
                     )}
                   </div>
@@ -1015,10 +1015,10 @@ function CheckoutContent() {
                           />
                           <label htmlFor="use-wallet" className="font-bold cursor-pointer">
                             Use Token Balance
-                            <p className="text-xs font-normal text-muted-foreground">Available: ৳{profile.walletBalance}</p>
+                            <p className="text-xs font-normal text-muted-foreground">Available: ${profile.walletBalance}</p>
                           </label>
                         </div>
-                        {useWallet && <span className="text-sm font-black text-primary">-৳{walletAmountToUse}</span>}
+                        {useWallet && <span className="text-sm font-black text-primary">-${walletAmountToUse}</span>}
                       </div>
                     </div>
                   )}
@@ -1116,7 +1116,7 @@ function CheckoutContent() {
                 ) : (
                   <p>২. উপরে দেওয়া <strong>Bangla QR</strong> কোডটি আপনার ব্যাংক বা পেমেন্ট অ্যাপ দিয়ে স্ক্যান করুন।</p>
                 )}
-                <p>৩. মোট পেমেন্ট অ্যামাউন্ট <strong>৳{Math.round(totalAmount + (deliveryCharge || 0) - couponDiscount - (useWallet ? walletAmountToUse : 0))}</strong> সেন্ড মানি করুন।</p>
+                <p>৩. মোট পেমেন্ট অ্যামাউন্ট <strong>${Math.round(totalAmount + (deliveryCharge || 0) - couponDiscount - (useWallet ? walletAmountToUse : 0))}</strong> সেন্ড মানি করুন।</p>
                 <p>৪. সফলভাবে টাকা পাঠানোর পর নিচের ট্যাব থেকে <strong>মোবাইল নম্বর</strong> অথবা <strong>TrxID</strong> যেকোনো একটি তথ্য দিয়ে পেমেন্ট নিশ্চিত করুন।</p>
               </div>
             </div>
