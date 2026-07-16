@@ -53,7 +53,7 @@ const productSchema = z.object({
   purchasePrice: z.union([z.coerce.number().min(0), z.literal('')]).optional(),
   discountRate: z.union([z.coerce.number().min(0).max(100), z.literal('')]).optional(),
   salePrice: z.union([z.coerce.number().min(0), z.literal('')]).optional(),
-  sku: z.string().min(3, 'SKU is required'),
+  sku: z.string().optional(),
   stock: z.union([z.coerce.number().int().min(0, 'Stock must be at least 0'), z.literal('')]),
   categories: z.array(z.string()).min(1, 'Select at least one category'),
   images: z.array(z.string()).min(1, 'Upload at least one image'),
@@ -92,8 +92,16 @@ const productSchema = z.object({
         path: ['price'],
       });
     }
+    // No variants: main SKU is mandatory
+    if (!data.sku || data.sku.trim().length < 3) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'SKU is required and must be at least 3 characters',
+        path: ['sku'],
+      });
+    }
   } else {
-    // Has variants: each size inside each variant must have a price > 0
+    // Has variants: each size inside each variant must have a price > 0 and SKU
     data.variants.forEach((variant, vIdx) => {
       (variant.sizes || []).forEach((size, sIdx) => {
         const sizePrice = size.price === '' || size.price === undefined ? 0 : Number(size.price);
@@ -102,6 +110,13 @@ const productSchema = z.object({
             code: z.ZodIssueCode.custom,
             message: 'Price is required for each variant size',
             path: ['variants', vIdx, 'sizes', sIdx, 'price'],
+          });
+        }
+        if (!size.sku || size.sku.trim().length < 3) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: 'SKU is required (min 3 chars)',
+            path: ['variants', vIdx, 'sizes', sIdx, 'sku'],
           });
         }
       });
@@ -344,7 +359,7 @@ export function ProductForm({ initialData }: ProductFormProps) {
             // Show a friendly error toast when validation fails silently
             const hasVariants = (form.getValues('variants') || []).length > 0;
             if (hasVariants) {
-              toast.error('Please fill in the Price field for every variant size.');
+              toast.error('Please fill in all mandatory variant details (Price and SKU for each size).');
             } else {
               toast.error('Please fix the form errors before saving.');
             }
@@ -413,9 +428,15 @@ export function ProductForm({ initialData }: ProductFormProps) {
                   name="sku"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>SKU</FormLabel>
+                      <FormLabel>
+                        SKU
+                        {variantFields.length > 0
+                          ? <span className="ml-1 text-xs font-normal text-muted-foreground">(Optional)</span>
+                          : <span className="ml-1 text-xs font-normal text-destructive">*</span>
+                        }
+                      </FormLabel>
                       <FormControl>
-                        <Input placeholder="STK-001" {...field} />
+                        <Input placeholder="STK-001" {...field} value={field.value || ''} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -712,12 +733,23 @@ export function ProductForm({ initialData }: ProductFormProps) {
                                       />
                                     </div>
                                     <div className="col-span-2 md:col-span-1">
-                                      <Label className="text-xs font-medium text-muted-foreground">SKU</Label>
+                                      <Label className="text-xs font-medium text-muted-foreground">
+                                        SKU <span className="text-destructive">*</span>
+                                      </Label>
                                       <Input
                                         {...form.register(`variants.${colorIndex}.sizes.${sizeIndex}.sku` as const)}
                                         placeholder="SKU"
-                                        className="h-9 mt-1"
+                                        className={`h-9 mt-1 ${
+                                          (form.formState.errors as any)?.variants?.[colorIndex]?.sizes?.[sizeIndex]?.sku
+                                            ? 'border-destructive focus-visible:ring-destructive'
+                                            : ''
+                                        }`}
                                       />
+                                      {(form.formState.errors as any)?.variants?.[colorIndex]?.sizes?.[sizeIndex]?.sku && (
+                                        <p className="text-[0.75rem] font-medium text-destructive mt-1">
+                                          {(form.formState.errors as any)?.variants?.[colorIndex]?.sizes?.[sizeIndex]?.sku?.message}
+                                        </p>
+                                      )}
                                     </div>
                                   </div>
 
