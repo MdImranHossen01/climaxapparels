@@ -162,7 +162,23 @@ export function ProductForm({ initialData }: ProductFormProps) {
     sku: initialData?.sku || '',
     stock: initialData?.stock ?? '',
     categories: initialData?.categories?.map((c: any) => typeof c === 'object' ? c._id : c) || [],
-    images: initialData?.images || [],
+    images: (() => {
+      const mainImages = initialData?.images || [];
+      if (mainImages.length === 1 && initialData?.variants && initialData.variants.length > 0) {
+        const variantImages: string[] = [];
+        initialData.variants.forEach((v: any) => {
+          if (v.images && Array.isArray(v.images) && v.images.length > 0) {
+            variantImages.push(v.images[0]);
+          } else if (v.image) {
+            variantImages.push(v.image);
+          }
+        });
+        if (variantImages.length > 0 && variantImages[0] === mainImages[0]) {
+          return [];
+        }
+      }
+      return mainImages;
+    })(),
     isPublished: initialData?.isPublished ?? true,
     isFeatured: initialData?.isFeatured ?? false,
     isNewArrival: initialData?.isNewArrival ?? false,
@@ -272,13 +288,10 @@ export function ProductForm({ initialData }: ProductFormProps) {
 
     let finalImages = values.images || [];
     if (finalImages.length === 0) {
-      const variantImagesSet = new Set<string>();
-      (values.variants || []).forEach((cGroup: any) => {
-        (cGroup.images || []).forEach((img: string) => {
-          if (img) variantImagesSet.add(img);
-        });
-      });
-      finalImages = Array.from(variantImagesSet);
+      const firstVariantWithImages = (values.variants || []).find((v: any) => v.images && v.images.length > 0);
+      if (firstVariantWithImages && firstVariantWithImages.images?.[0]) {
+        finalImages = [firstVariantWithImages.images[0]];
+      }
     }
 
     const cleanValues = {

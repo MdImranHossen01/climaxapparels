@@ -120,6 +120,7 @@ export async function POST(req: NextRequest) {
       size: v.size,
       sku: v.sku,
       image: v.image,
+      images: Array.isArray(v.images) ? v.images : (v.image ? [v.image] : []),
       price: Number.isFinite(parseFloat(v.price)) ? parseFloat(v.price) : 0,
       salePrice: Number.isFinite(parseFloat(v.salePrice)) ? parseFloat(v.salePrice) : undefined,
       stock: Number.isFinite(parseInt(v.stock, 10)) ? parseInt(v.stock, 10) : 0,
