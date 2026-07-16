@@ -96,9 +96,11 @@ export async function POST(req: NextRequest) {
     const parsedDiscountRate = Number.isFinite(rawDiscountRate) ? rawDiscountRate : undefined;
 
     // Validate required fields and price
-    if (!name || !slug || !description || !sku || isNaN(parsedPrice) || parsedPrice <= 0) {
+    const hasVariants = variants && variants.length > 0;
+    if (!name || !slug || !description || 
+        (!hasVariants && (!sku || isNaN(parsedPrice) || parsedPrice <= 0))) {
       return NextResponse.json({
-        message: 'Invalid or missing required fields. Price must be a positive number.'
+        message: 'Invalid or missing required fields. When not using variants, Price must be a positive number and SKU is required.'
       }, { status: 400 });
     }
 

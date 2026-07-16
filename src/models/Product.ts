@@ -1,4 +1,4 @@
-﻿/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import mongoose, { Document, Model, Schema } from 'mongoose';
 
 export interface IProduct extends Document {
@@ -49,7 +49,13 @@ const ProductSchema: Schema<IProduct> = new Schema(
     name: { type: String, required: true },
     slug: { type: String, required: true, unique: true },
     description: { type: String, required: true },
-    price: { type: Number, required: true, min: [0, 'Price cannot be negative'] },
+    price: { 
+      type: Number, 
+      required: function(this: any) {
+        return !this.variants || this.variants.length === 0;
+      },
+      min: [0, 'Price cannot be negative'] 
+    },
     salePrice: { 
       type: Number,
       min: [0, 'Sale price cannot be negative'],
@@ -59,7 +65,14 @@ const ProductSchema: Schema<IProduct> = new Schema(
       min: [0, 'Purchase price cannot be negative'],
     },
     discountRate: { type: Number },
-    sku: { type: String, required: true, unique: true },
+    sku: { 
+      type: String, 
+      required: function(this: any) {
+        return !this.variants || this.variants.length === 0;
+      },
+      unique: true,
+      sparse: true
+    },
     stock: { type: Number, required: true, default: 0, min: [0, 'Stock cannot be negative'] },
     categories: [{ type: Schema.Types.ObjectId, ref: 'Category' }],
     tags: [{ type: String }],
