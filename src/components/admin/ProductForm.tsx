@@ -56,7 +56,7 @@ const productSchema = z.object({
   sku: z.string().optional(),
   stock: z.union([z.coerce.number().int().min(0, 'Stock must be at least 0'), z.literal('')]),
   categories: z.array(z.string()).min(1, 'Select at least one category'),
-  images: z.array(z.string()).min(1, 'Upload at least one image'),
+  images: z.array(z.string()).default([]),
   isFeatured: z.boolean(),
   isNewArrival: z.boolean(),
   isFlashSale: z.boolean().optional(),
@@ -81,6 +81,17 @@ const productSchema = z.object({
   })).default([]),
 }).superRefine((data, ctx) => {
   const hasVariants = data.variants && data.variants.length > 0;
+
+  // Validation Check: ensure at least one image is uploaded, either in gallery or in a variant
+  const hasMainImages = data.images && data.images.length > 0;
+  const hasVariantImages = data.variants && data.variants.some(v => v.images && v.images.length > 0);
+  if (!hasMainImages && !hasVariantImages) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Upload at least one image (either in Gallery Images or in a color variant)',
+      path: ['images'],
+    });
+  }
 
   if (!hasVariants) {
     // No variants: main price is mandatory and must be > 0
@@ -259,8 +270,20 @@ export function ProductForm({ initialData }: ProductFormProps) {
       });
     });
 
+    let finalImages = values.images || [];
+    if (finalImages.length === 0) {
+      const variantImagesSet = new Set<string>();
+      (values.variants || []).forEach((cGroup: any) => {
+        (cGroup.images || []).forEach((img: string) => {
+          if (img) variantImagesSet.add(img);
+        });
+      });
+      finalImages = Array.from(variantImagesSet);
+    }
+
     const cleanValues = {
       ...values,
+      images: finalImages,
       price: values.price === '' ? 0 : Number(values.price),
       purchasePrice: values.purchasePrice === '' ? undefined : Number(values.purchasePrice),
       salePrice: values.salePrice === '' ? undefined : Number(values.salePrice),
@@ -353,19 +376,23 @@ export function ProductForm({ initialData }: ProductFormProps) {
 
   return (
     <Form {...form}>
-        <form
-          onSubmit={form.handleSubmit(onSubmit, (errors) => {
-            console.error('Form validation errors:', errors);
-            // Show a friendly error toast when validation fails silently
-            const hasVariants = (form.getValues('variants') || []).length > 0;
-            if (hasVariants) {
-              toast.error('Please fill in all mandatory variant details (Price and SKU for each size).');
-            } else {
-              toast.error('Please fix the form errors before saving.');
-            }
-          })}
-          className="space-y-8 pb-10"
-        >
+      <form
+        onSubmit={form.handleSubmit(onSubmit, (errors) => {
+          console.error('Form validation errors:', errors);
+          // Format and display error messages in toast
+          const errorMessages = Object.entries(errors)
+            .map(([key, val]: any) => {
+              if (key === 'variants') {
+                return 'Variant pricing/SKU details are invalid or incomplete.';
+              }
+              return `${key}: ${val?.message || 'Invalid value'}`;
+            })
+            .join(' | ');
+
+          toast.error(`Validation Failed: ${errorMessages || 'Please check the form fields.'}`);
+        })}
+        className="space-y-8 pb-10"
+      >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Button
