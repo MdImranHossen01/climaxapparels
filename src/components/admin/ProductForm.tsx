@@ -114,6 +114,14 @@ const productSchema = z.object({
   } else {
     // Has variants: each size inside each variant must have a price > 0 and SKU
     data.variants.forEach((variant, vIdx) => {
+      // Each color variant must have at least one image
+      if (!variant.images || variant.images.length === 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Upload at least one image for this color variant',
+          path: ['variants', vIdx, 'images'],
+        });
+      }
       (variant.sizes || []).forEach((size, sIdx) => {
         const sizePrice = size.price === '' || size.price === undefined ? 0 : Number(size.price);
         if (!sizePrice || sizePrice <= 0) {
@@ -662,11 +670,17 @@ export function ProductForm({ initialData }: ProductFormProps) {
                               <ImageUpload
                                 onUpload={(url) => {
                                   form.setValue(`variants.${colorIndex}.images`, [...colorImages, url]);
+                                  form.trigger(`variants.${colorIndex}.images` as any);
                                 }}
                                 compact
                                 className="h-16 w-16"
                               />
                             </div>
+                            {(form.formState.errors as any)?.variants?.[colorIndex]?.images && (
+                              <p className="text-xs text-destructive mt-1">
+                                {(form.formState.errors as any)?.variants?.[colorIndex]?.images?.message}
+                              </p>
+                            )}
                           </div>
                         </div>
 
