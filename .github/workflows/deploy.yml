@@ -60,6 +60,12 @@ jobs:
                   - "3001:3000"
                 env_file:
                   - .env.local
+                deploy:
+                  resources:
+                    limits:
+                      memory: 180M
+                    reservations:
+                      memory: 80M
                 logging:
                   driver: "json-file"
                   options:
