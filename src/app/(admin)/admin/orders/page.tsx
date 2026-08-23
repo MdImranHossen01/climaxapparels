@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
@@ -836,7 +836,7 @@ function OrdersContent() {
                       onCheckedChange={() => toggleSelect(order._id)}
                     />
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="max-w-[200px] whitespace-normal">
                     <div className="flex flex-col gap-1.5 text-xs">
                       <div className="flex items-center gap-1.5">
                         <button
@@ -856,7 +856,7 @@ function OrdersContent() {
                       </div>
                       
                       <div className="flex flex-col text-[11px] text-slate-700 dark:text-zinc-300 mt-1 space-y-0.5">
-                        <span className="font-semibold text-slate-900 dark:text-white">{order.shippingAddress?.fullName || order.user?.name || 'Guest User'}</span>
+                        <span className="font-semibold text-slate-900 dark:text-white break-words block">{order.shippingAddress?.fullName || order.user?.name || 'Guest User'}</span>
                         <div className="flex items-center gap-1.5">
                           <span 
                             onClick={() => order.shippingAddress?.phone && setSearchTerm(order.shippingAddress.phone)}

@@ -178,7 +178,7 @@ export default function ProductCardV6({ product: initialProduct, isFlashSale, pr
     <div className={`group relative flex flex-col font-jost animate-in fade-in duration-700 ${layout === 'v3' ? 'lg:rounded-sm lg:overflow-hidden lg:border lg:border-border/40 lg:pb-3 lg:bg-card' : ''}`}>
       {/* Image Container */}
       <div className={`relative aspect-square overflow-hidden bg-muted ${layout === 'v3' ? 'lg:rounded-t-sm' : 'rounded-none'}`}>
-        <Link href={`/product/${product.slug}`} className="relative block h-full w-full">
+        <Link prefetch={true} href={`/product/${product.slug}`} className="relative block h-full w-full">
           <Image
             src={product.images?.[0] || '/placeholder.png'}
             alt={product.name}
@@ -250,7 +250,7 @@ export default function ProductCardV6({ product: initialProduct, isFlashSale, pr
       {/* Product Info */}
       <div className="mt-4 text-center space-y-4 px-2 pb-2 flex-1 flex flex-col justify-between">
         <div className="min-h-[5.25rem] sm:min-h-[4.5rem] flex flex-col justify-center">
-          <Link
+          <Link prefetch={true}
             href={`/product/${product.slug}`}
             className={`text-sm ${layout === 'v3' ? 'lg:text-xs' : 'sm:text-base'} font-semibold text-foreground hover:text-primary transition-colors leading-tight px-2 line-clamp-3 sm:line-clamp-2`}
             title={product.name}
