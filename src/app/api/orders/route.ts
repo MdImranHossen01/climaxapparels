@@ -37,14 +37,17 @@ const orderSchema = z.object({
   items: z.array(orderItemSchema).min(1, 'At least one item is required'),
   shippingAddress: z.object({
     fullName: z.string().min(2, 'Full name is required'),
-    phone: z.string().min(10, 'Invalid phone number'),
+    phone: z.string().min(7, 'Invalid phone number'),
     email: z.string().email('Invalid email address'),
-    street: z.string().min(1, 'Street is required'),
+    company: z.string().optional(),
+    street: z.string().min(1, 'Street address is required'),
+    apartment: z.string().optional(),
     city: z.string().min(1, 'City is required'),
-    state: z.string().min(1, 'State is required'),
-    division: z.string().min(1, 'Division is required'),
-    zipCode: z.string().optional().default('0000'),
-    country: z.string().optional().default('Bangladesh'),
+    state: z.string().min(1, 'State / Province is required'),
+    division: z.string().optional().default(''),
+    zipCode: z.string().min(2, 'Postal / ZIP code is required'),
+    country: z.string().min(2, 'Country is required'),
+    orderNotes: z.string().optional(),
   }),
   paymentMethod: z.preprocess((val) => {
     if (typeof val === 'string') {

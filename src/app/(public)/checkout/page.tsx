@@ -19,10 +19,11 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { Loader2, CreditCard, Truck, ShoppingBag, CheckCircle2, Plus, Minus, X, Globe, ArrowRight, PartyPopper, XCircle, Landmark, FileText, Building2 } from 'lucide-react';
+import { Loader2, CreditCard, Truck, ShoppingBag, CheckCircle2, Plus, Minus, X, Globe, ArrowRight, PartyPopper, XCircle, Landmark, FileText, Building2, Mail, MapPin } from 'lucide-react';
 import { toast } from 'sonner';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
@@ -46,10 +47,51 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 
+const COUNTRIES = [
+  "United States",
+  "United Kingdom",
+  "Canada",
+  "Germany",
+  "France",
+  "Italy",
+  "Spain",
+  "Australia",
+  "Netherlands",
+  "Switzerland",
+  "Sweden",
+  "Poland",
+  "Belgium",
+  "Austria",
+  "Norway",
+  "Denmark",
+  "Ireland",
+  "Finland",
+  "Portugal",
+  "New Zealand",
+  "United Arab Emirates",
+  "Saudi Arabia",
+  "Singapore",
+  "Japan",
+  "South Korea",
+  "Mexico",
+  "Brazil",
+  "Bangladesh",
+  "India",
+  "Other / Worldwide"
+];
+
 const checkoutSchema = z.object({
   fullName: z.string().min(2, 'Full name is required'),
-  phone: z.string().min(7, 'Please enter a valid phone number'),
-  street: z.string().min(5, 'Full shipping address is required'),
+  email: z.string().email('Please enter a valid email address'),
+  phone: z.string().min(7, 'Please enter a valid phone number with country code'),
+  company: z.string().optional(),
+  country: z.string().min(2, 'Country / Region is required'),
+  street: z.string().min(3, 'Street address is required'),
+  apartment: z.string().optional(),
+  city: z.string().min(2, 'City / Town is required'),
+  state: z.string().min(2, 'State / Province is required'),
+  zipCode: z.string().min(2, 'Postal / ZIP code is required'),
+  orderNotes: z.string().optional(),
   deliveryArea: z.enum(['inside', 'outside'], {
     message: 'Please select a shipping method',
   }),
@@ -83,8 +125,16 @@ function CheckoutContent() {
     mode: 'onChange',
     defaultValues: {
       fullName: '',
+      email: '',
       phone: '',
+      company: '',
+      country: 'United States',
       street: '',
+      apartment: '',
+      city: '',
+      state: '',
+      zipCode: '',
+      orderNotes: '',
       deliveryArea: 'inside',
       paymentMethod: 'TT',
     },
@@ -123,9 +173,17 @@ function CheckoutContent() {
           if (profileData) {
             form.reset({
               fullName: profileData.name || '',
+              email: profileData.email || '',
               phone: profileData.phone || '',
+              company: profileData.company || '',
+              country: profileData.country || 'United States',
               street: profileData.address || '',
-              deliveryArea: (profileData.division?.toLowerCase().includes('dhaka') || profileData.district?.toLowerCase().includes('dhaka')) ? 'inside' : 'outside',
+              apartment: profileData.apartment || '',
+              city: profileData.city || '',
+              state: profileData.state || '',
+              zipCode: profileData.zipCode || '',
+              orderNotes: '',
+              deliveryArea: 'inside',
               paymentMethod: 'TT',
             });
           }
@@ -307,7 +365,7 @@ function CheckoutContent() {
 
   useEffect(() => {
     if (!isHydrated || items.length === 0 || submissionSucceededRef.current) return;
-    if (!watchedPhone || watchedPhone.trim().length < 11 || !watchedFullName || watchedFullName.trim().length < 2) return;
+    if (!watchedPhone || watchedPhone.trim().replace(/[^0-9]/g, '').length < 7 || !watchedFullName || watchedFullName.trim().length < 2) return;
 
     const syncAbandonedCart = async () => {
       try {
@@ -317,7 +375,7 @@ function CheckoutContent() {
           body: JSON.stringify({
             fullName: watchedFullName,
             phone: watchedPhone,
-            email: profile?.email || '',
+            email: form.watch('email') || profile?.email || '',
             street: watchedStreet,
             deliveryArea: watchedDeliveryArea,
             items: items.map(item => ({
@@ -339,7 +397,7 @@ function CheckoutContent() {
 
     const timer = setTimeout(syncAbandonedCart, 2000); // 2 seconds debounce
     return () => clearTimeout(timer);
-  }, [watchedFullName, watchedPhone, watchedStreet, watchedDeliveryArea, items, totalAmount, isHydrated, profile?.email]);
+  }, [watchedFullName, watchedPhone, watchedStreet, watchedDeliveryArea, items, totalAmount, isHydrated, profile?.email, form]);
 
   const submissionSucceededRef = useRef(false);
 
@@ -357,17 +415,18 @@ function CheckoutContent() {
           size: item.size
         })),
         shippingAddress: {
-          fullName: values.fullName,
-          phone: values.phone,
-          email: profile?.email || `${values.phone}@store.com`,
-          street: values.street,
-          city: profile?.city || (values.deliveryArea === 'inside' ? 'Standard Shipping Area' : 'Express Shipping Area'),
-          state: profile?.state || (values.deliveryArea === 'inside' ? 'Standard Shipping' : 'Express Shipping'),
-          division: profile?.division || 'International',
-          district: profile?.district || 'International',
-          thana: profile?.thana || 'International',
-          zipCode: profile?.zipCode || '00000',
-          country: profile?.country || 'International'
+          fullName: values.fullName.trim(),
+          phone: values.phone.trim(),
+          email: values.email.trim(),
+          company: values.company?.trim() || undefined,
+          street: values.street.trim(),
+          apartment: values.apartment?.trim() || undefined,
+          city: values.city.trim(),
+          state: values.state.trim(),
+          division: values.state.trim(),
+          zipCode: values.zipCode.trim(),
+          country: values.country.trim(),
+          orderNotes: values.orderNotes?.trim() || undefined,
         },
         paymentMethod: values.paymentMethod,
         deliveryCharge: deliveryCharge,
@@ -414,17 +473,15 @@ function CheckoutContent() {
           };
 
           const purchaseUserData: any = {
-            em: profile?.email || '',
-            ph: values.phone,
+            em: values.email.trim(),
+            ph: values.phone.trim(),
             fn: nameParts[0] || '',
             ln: nameParts.slice(1).join(' ') || '',
-            country: 'bd',
+            country: values.country.toLowerCase(),
+            ct: values.city.trim(),
+            st: values.state.trim(),
+            zp: values.zipCode.trim(),
           };
-
-          if (values.deliveryArea === 'inside') {
-            purchaseUserData.ct = 'Dhaka';
-            purchaseUserData.st = 'Dhaka';
-          }
 
           fbEvent('Purchase', purchaseEventData, purchaseUserData, order._id);
           ttEvent('Purchase', purchaseEventData, purchaseUserData, order._id);
@@ -547,13 +604,23 @@ function CheckoutContent() {
 
   // Validation check for mandatory fields to show/hide the order button
   const watchedFields = form.watch();
-  const isPhoneValid = (watchedFields.phone || '').trim().replace(/[^0-9]/g, '').length >= 7;
-  const isAddressValid = (watchedFields.street || '').trim().length >= 5;
   const isNameValid = (watchedFields.fullName || '').trim().length >= 2;
+  const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test((watchedFields.email || '').trim());
+  const isPhoneValid = (watchedFields.phone || '').trim().replace(/[^0-9]/g, '').length >= 7;
+  const isCountryValid = (watchedFields.country || '').trim().length >= 2;
+  const isStreetValid = (watchedFields.street || '').trim().length >= 3;
+  const isCityValid = (watchedFields.city || '').trim().length >= 2;
+  const isStateValid = (watchedFields.state || '').trim().length >= 2;
+  const isZipValid = (watchedFields.zipCode || '').trim().length >= 2;
   const isFormValid = !!(
     isNameValid &&
+    isEmailValid &&
     isPhoneValid &&
-    isAddressValid &&
+    isCountryValid &&
+    isStreetValid &&
+    isCityValid &&
+    isStateValid &&
+    isZipValid &&
     watchedFields.deliveryArea &&
     watchedFields.paymentMethod
   );
@@ -715,60 +782,203 @@ function CheckoutContent() {
                     <Truck className="h-6 w-6 text-primary" />
                     Shipping & Delivery Information
                   </CardTitle>
+                  <CardDescription>
+                    Enter your international delivery address and contact coordinates.
+                  </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-6">
+                <CardContent className="space-y-4">
+                  {/* Row 1: Full Name & Email */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="fullName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Full Name *</FormLabel>
+                          <FormControl>
+                            <Input placeholder="John Doe" {...field} className="h-11 focus-visible:ring-primary/20" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="email"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Email Address *</FormLabel>
+                          <FormControl>
+                            <Input type="email" placeholder="john.doe@example.com" {...field} className="h-11 focus-visible:ring-primary/20" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  {/* Row 2: Phone Number & Company Name */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="phone"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Phone Number *</FormLabel>
+                          <FormControl>
+                            <Input placeholder="e.g. +1 555 123 4567" {...field} className="h-11 focus-visible:ring-primary/20" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="company"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Company / Business Name <span className="text-muted-foreground text-xs">(Optional)</span></FormLabel>
+                          <FormControl>
+                            <Input placeholder="e.g. Acme Apparel LLC" {...field} className="h-11 focus-visible:ring-primary/20" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  {/* Row 3: Country / Region */}
                   <FormField
                     control={form.control}
-                    name="fullName"
+                    name="country"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Full Name</FormLabel>
+                        <FormLabel>Country / Region *</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger className="h-11 focus-visible:ring-primary/20">
+                              <SelectValue placeholder="Select Country" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent className="max-h-64">
+                            {COUNTRIES.map((c) => (
+                              <SelectItem key={c} value={c}>{c}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Row 4: Street Address (Line 1) */}
+                  <FormField
+                    control={form.control}
+                    name="street"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Street Address *</FormLabel>
                         <FormControl>
-                          <Input placeholder="Enter your full name" {...field} className="h-11 focus-visible:ring-primary/20" />
+                          <Input placeholder="House number and street name" {...field} className="h-11 focus-visible:ring-primary/20" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
+
+                  {/* Row 5: Apartment, suite, unit (Line 2 - Optional) */}
                   <FormField
                     control={form.control}
-                    name="phone"
+                    name="apartment"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Phone Number</FormLabel>
+                        <FormLabel>Apartment, Suite, Unit <span className="text-muted-foreground text-xs">(Optional)</span></FormLabel>
                         <FormControl>
-                          <Input placeholder="e.g. +1 555 123 4567" {...field} className="h-11 focus-visible:ring-primary/20" />
+                          <Input placeholder="Apartment, suite, unit, building, floor, etc." {...field} className="h-11 focus-visible:ring-primary/20" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
+
+                  {/* Row 6: City, State/Province, ZIP Code */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="city"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>City / Town *</FormLabel>
+                          <FormControl>
+                            <Input placeholder="e.g. New York" {...field} className="h-11 focus-visible:ring-primary/20" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="state"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>State / Province / Region *</FormLabel>
+                          <FormControl>
+                            <Input placeholder="e.g. NY / California" {...field} className="h-11 focus-visible:ring-primary/20" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="zipCode"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Postal / ZIP Code *</FormLabel>
+                          <FormControl>
+                            <Input placeholder="e.g. 10001" {...field} className="h-11 focus-visible:ring-primary/20" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  {/* Row 7: Shipping Method */}
                   <FormField
                     control={form.control}
                     name="deliveryArea"
                     render={({ field }) => (
-                      <FormItem className="space-y-3">
-                        <FormLabel className="font-bold">Shipping Method</FormLabel>
+                      <FormItem className="space-y-3 pt-2">
+                        <FormLabel className="font-bold">Shipping Method *</FormLabel>
                         <FormControl>
                           <RadioGroup
                             onValueChange={field.onChange}
                             value={field.value}
-                            className="flex flex-row space-x-6 pt-1"
+                            className="grid grid-cols-1 sm:grid-cols-2 gap-3"
                           >
-                            <FormItem className="flex items-center space-x-2 space-y-0 cursor-pointer">
-                              <FormControl>
+                            <FormItem className={`flex items-start space-x-3 space-y-0 border rounded-xl p-3.5 cursor-pointer transition-all ${field.value === 'inside' ? 'border-primary bg-primary/5 ring-1 ring-primary/20' : 'hover:bg-muted/50'}`}>
+                              <FormControl className="mt-1">
                                 <RadioGroupItem value="inside" />
                               </FormControl>
-                              <FormLabel className="font-medium cursor-pointer text-sm">
-                                Standard Shipping (${settings?.deliveryChargeInsideDhaka ?? 60})
+                              <FormLabel className="font-bold cursor-pointer flex-1">
+                                <div className="flex items-center justify-between">
+                                  <span>Standard Shipping</span>
+                                  <span className="text-primary font-black">${settings?.deliveryChargeInsideDhaka ?? 60}</span>
+                                </div>
+                                <p className="text-xs font-normal text-muted-foreground mt-0.5">Estimated 7-14 business days</p>
                               </FormLabel>
                             </FormItem>
-                            <FormItem className="flex items-center space-x-2 space-y-0 cursor-pointer">
-                              <FormControl>
+                            <FormItem className={`flex items-start space-x-3 space-y-0 border rounded-xl p-3.5 cursor-pointer transition-all ${field.value === 'outside' ? 'border-primary bg-primary/5 ring-1 ring-primary/20' : 'hover:bg-muted/50'}`}>
+                              <FormControl className="mt-1">
                                 <RadioGroupItem value="outside" />
                               </FormControl>
-                              <FormLabel className="font-medium cursor-pointer text-sm">
-                                Express Shipping (${settings?.deliveryChargeOutsideDhaka ?? 120})
+                              <FormLabel className="font-bold cursor-pointer flex-1">
+                                <div className="flex items-center justify-between">
+                                  <span>Express Shipping</span>
+                                  <span className="text-primary font-black">${settings?.deliveryChargeOutsideDhaka ?? 120}</span>
+                                </div>
+                                <p className="text-xs font-normal text-muted-foreground mt-0.5">Estimated 3-5 business days (Priority)</p>
                               </FormLabel>
                             </FormItem>
                           </RadioGroup>
@@ -777,14 +987,16 @@ function CheckoutContent() {
                       </FormItem>
                     )}
                   />
+
+                  {/* Row 8: Order Notes / Delivery Instructions */}
                   <FormField
                     control={form.control}
-                    name="street"
+                    name="orderNotes"
                     render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Shipping Address</FormLabel>
+                      <FormItem className="pt-2">
+                        <FormLabel>Order Notes / Delivery Instructions <span className="text-muted-foreground text-xs">(Optional)</span></FormLabel>
                         <FormControl>
-                          <Input placeholder="Street address, apartment, city, state, zip code" {...field} className="h-11 focus-visible:ring-primary/20" />
+                          <Textarea placeholder="Notes about your order, e.g. special delivery instructions or packaging requests" {...field} className="min-h-[70px] text-xs focus-visible:ring-primary/20" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>

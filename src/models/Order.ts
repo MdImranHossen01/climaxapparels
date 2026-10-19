@@ -20,12 +20,16 @@ export interface IOrder extends Document {
   shippingAddress: {
     fullName: string;
     phone: string;
+    email?: string;
+    company?: string;
     street: string;
+    apartment?: string;
     city: string;
     state: string;
     division?: string;
     zipCode: string;
     country: string;
+    orderNotes?: string;
   };
   paymentMethod: string;
   paymentStatus: 'Pending' | 'Paid' | 'Failed';
@@ -77,12 +81,16 @@ const OrderSchema: Schema<IOrder> = new Schema(
       type: {
         fullName: { type: String, required: true },
         phone: { type: String, required: true },
+        email: { type: String, required: false },
+        company: { type: String, required: false },
         street: { type: String, required: true },
+        apartment: { type: String, required: false },
         city: { type: String, required: true },
         state: { type: String, required: true },
         division: { type: String, required: false },
         zipCode: { type: String, required: true },
         country: { type: String, required: true },
+        orderNotes: { type: String, required: false },
       },
       required: [true, 'Shipping address is required'],
     },
