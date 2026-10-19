@@ -115,7 +115,7 @@ export default function FooterV2() {
               {settings?.brandName || 'Climax Apparels'}
             </Link>
             <p className="text-muted-foreground text-sm max-w-sm leading-relaxed font-medium">
-              Pushing the boundaries of design. Born in the heart of Dhaka, engineering for the world.
+              Pushing the boundaries of design. Crafted for the global standard, engineering for the world.
             </p>
 
             {/* PWA Download App Button */}

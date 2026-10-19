@@ -24,8 +24,7 @@ export function LoyaltyBanner({ settings, layout }: LoyaltyBannerProps) {
               Lifetime Rewards
             </div>
             <h2 className={`text-2xl sm:text-3xl ${layout === 'v3' ? 'lg:text-3xl' : 'md:text-5xl'} font-black tracking-tight md:tracking-tighter leading-tight md:leading-none break-words`}>
-              JOIN THE <span className="text-primary">Climax Apparels</span> <br />
-              LOYALTY CLUB
+              JOIN THE LOYALTY CLUB
             </h2>
             <p className={`text-gray-400 ${layout === 'v3' ? 'lg:text-sm' : 'text-lg'} max-w-md`}>
               Unlock exclusive lifetime benefits. Spend <span className="text-white font-bold">${threshold}</span> once and earn <span className="text-primary font-bold">{percentage}% tokens</span> on every future purchase!

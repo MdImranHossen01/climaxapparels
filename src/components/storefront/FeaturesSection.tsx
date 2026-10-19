@@ -1,44 +1,44 @@
-﻿'use client';
+'use client';
 
-import { Truck, ShieldCheck, Headphones, Zap, CreditCard, RefreshCcw } from 'lucide-react';
+import { Globe, Truck, ShieldCheck, Headphones, Zap, CreditCard, RefreshCcw } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
 const features = [
   {
-    icon: Truck,
-    title: "Free Delivery",
-    desc: "Across all 64 districts",
-    color: "bg-blue-500/10 text-blue-500"
+    icon: Globe,
+    title: "Worldwide Shipping",
+    desc: "USA, Europe & Worldwide",
+    color: "bg-primary/10 text-primary"
   },
   {
     icon: ShieldCheck,
-    title: "100% Genuine",
-    desc: "Direct from manufacturers",
-    color: "bg-green-500/10 text-green-500"
+    title: "Premium Quality",
+    desc: "Ethically crafted apparel",
+    color: "bg-primary/10 text-primary"
   },
   {
     icon: RefreshCcw,
     title: "Easy Returns",
-    desc: "7-day replacement policy",
-    color: "bg-orange-500/10 text-orange-500"
+    desc: "30-day hassle-free returns",
+    color: "bg-primary/10 text-primary"
   },
   {
     icon: CreditCard,
     title: "Secure Payment",
-    desc: "SSLCommerz encrypted",
-    color: "bg-purple-500/10 text-purple-500"
+    desc: "256-bit SSL encrypted",
+    color: "bg-primary/10 text-primary"
   },
   {
     icon: Headphones,
     title: "24/7 Support",
-    desc: "Dedicated help center",
-    color: "bg-pink-500/10 text-pink-500"
+    desc: "Dedicated global service",
+    color: "bg-primary/10 text-primary"
   },
   {
     icon: Zap,
-    title: "Instant Booking",
-    desc: "Automated fulfillment",
-    color: "bg-yellow-500/10 text-yellow-500"
+    title: "Fast Dispatch",
+    desc: "Ships within 24-48 hours",
+    color: "bg-primary/10 text-primary"
   }
 ];
 

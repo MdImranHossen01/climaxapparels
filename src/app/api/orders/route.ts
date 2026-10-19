@@ -54,7 +54,7 @@ const orderSchema = z.object({
       }
     }
     return val;
-  }, z.enum(['COD', 'Online', 'Manual'])),
+  }, z.enum(['COD', 'Online', 'Manual', 'TT', 'LC', 'Bank Transfer'])),
   deliveryCharge: z.number().min(0).nullish(),
   useWallet: z.boolean().nullish().default(false),
   couponCode: z.string().nullish(),

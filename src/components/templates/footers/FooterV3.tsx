@@ -36,7 +36,7 @@ export default function FooterV3() {
                      <span className="font-black text-sm sm:text-base md:text-xl tracking-tighter break-words max-w-[200px] md:max-w-none">Climax Apparels</span>
                   </div>
                   <p className="text-[10px] text-neutral-500 uppercase tracking-widest leading-relaxed">
-                     Systematic commerce architecture. High-precision retail logistics. Distributed from DHAKA_HQ.
+                     Systematic commerce architecture. High-precision retail logistics. Distributed worldwide.
                   </p>
                   {hasSocialLinks && (
                      <div className="flex items-center gap-4">

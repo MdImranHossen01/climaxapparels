@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState, useEffect, useRef, Suspense } from 'react';
 import Image from 'next/image';
@@ -22,7 +22,7 @@ import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { Loader2, CreditCard, Truck, ShoppingBag, CheckCircle2, Plus, Minus, X, Globe, ArrowRight, PartyPopper, XCircle } from 'lucide-react';
+import { Loader2, CreditCard, Truck, ShoppingBag, CheckCircle2, Plus, Minus, X, Globe, ArrowRight, PartyPopper, XCircle, Landmark, FileText, Building2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
@@ -47,14 +47,14 @@ import {
 } from "@/components/ui/dialog";
 
 const checkoutSchema = z.object({
-  fullName: z.string().min(2, 'নাম আবশ্যক'),
-  phone: z.string().min(11, 'সঠিক মোবাইল নম্বর দিন'),
-  street: z.string().min(5, 'ঠিকানা আবশ্যক'),
+  fullName: z.string().min(2, 'Full name is required'),
+  phone: z.string().min(7, 'Please enter a valid phone number'),
+  street: z.string().min(5, 'Full shipping address is required'),
   deliveryArea: z.enum(['inside', 'outside'], {
-    message: 'ডেলিভারি এলাকা নির্বাচন করুন',
+    message: 'Please select a shipping method',
   }),
-  paymentMethod: z.enum(['COD', 'Online', 'Manual'], {
-    message: 'Select a payment method'
+  paymentMethod: z.enum(['TT', 'LC', 'Bank Transfer', 'Online'], {
+    message: 'Please select a payment method'
   }),
 });
 
@@ -72,17 +72,12 @@ function CheckoutContent() {
   const [couponDiscount, setCouponDiscount] = useState(0);
   const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
   const [applyingCoupon, setApplyingCoupon] = useState(false);
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showFailModal, setShowFailModal] = useState(false);
   const [successOrderId, setSuccessOrderId] = useState<string | null>(null);
   const searchParams = useSearchParams();
-  const [selectedMethod, setSelectedMethod] = useState<any>(null);
-  const [manualDetails, setManualDetails] = useState({
-    senderNumber: '',
-    transactionId: ''
-  });
-  const [paymentDetailTab, setPaymentDetailTab] = useState<'phone' | 'trx'>('phone');
+  const [bankReference, setBankReference] = useState('');
+  const [bankSenderInfo, setBankSenderInfo] = useState('');
   const form = useForm<CheckoutValues>({
     resolver: zodResolver(checkoutSchema),
     mode: 'onChange',
@@ -91,18 +86,9 @@ function CheckoutContent() {
       phone: '',
       street: '',
       deliveryArea: 'inside',
-      paymentMethod: 'COD',
+      paymentMethod: 'TT',
     },
   });
-
-  // Reset manual payment details if payment method changes away from Manual
-  useEffect(() => {
-    const method = form.watch('paymentMethod');
-    if (method !== 'Manual') {
-      setSelectedMethod(null);
-      setManualDetails({ senderNumber: '', transactionId: '' });
-    }
-  }, [form.watch('paymentMethod')]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Handle SSLCommerz redirect back — show modal based on ?order= param
   useEffect(() => {
@@ -140,7 +126,7 @@ function CheckoutContent() {
               phone: profileData.phone || '',
               street: profileData.address || '',
               deliveryArea: (profileData.division?.toLowerCase().includes('dhaka') || profileData.district?.toLowerCase().includes('dhaka')) ? 'inside' : 'outside',
-              paymentMethod: 'COD',
+              paymentMethod: 'TT',
             });
           }
         }
@@ -375,22 +361,26 @@ function CheckoutContent() {
           phone: values.phone,
           email: profile?.email || `${values.phone}@store.com`,
           street: values.street,
-          city: values.deliveryArea === 'inside' ? 'Dhaka' : 'Outside Dhaka',
-          state: values.deliveryArea === 'inside' ? 'Dhaka' : 'Outside Dhaka',
-          division: values.deliveryArea === 'inside' ? 'Dhaka' : 'Outside Dhaka',
-          district: values.deliveryArea === 'inside' ? 'Dhaka' : 'Outside Dhaka',
-          thana: values.deliveryArea === 'inside' ? 'Dhaka' : 'Outside Dhaka',
-          zipCode: '0000',
-          country: 'Bangladesh'
+          city: profile?.city || (values.deliveryArea === 'inside' ? 'Standard Shipping Area' : 'Express Shipping Area'),
+          state: profile?.state || (values.deliveryArea === 'inside' ? 'Standard Shipping' : 'Express Shipping'),
+          division: profile?.division || 'International',
+          district: profile?.district || 'International',
+          thana: profile?.thana || 'International',
+          zipCode: profile?.zipCode || '00000',
+          country: profile?.country || 'International'
         },
         paymentMethod: values.paymentMethod,
         deliveryCharge: deliveryCharge,
         useWallet: useWallet,
         couponCode: appliedCoupon || undefined,
-        manualPaymentDetails: values.paymentMethod === 'Manual' ? {
-          methodName: selectedMethod?.id,
-          senderNumber: manualDetails.senderNumber,
-          transactionId: manualDetails.transactionId
+        manualPaymentDetails: (values.paymentMethod === 'TT' || values.paymentMethod === 'LC' || values.paymentMethod === 'Bank Transfer') ? {
+          methodName: values.paymentMethod === 'TT'
+            ? 'Telegraphic Transfer (T/T)'
+            : values.paymentMethod === 'LC'
+            ? 'Letter of Credit (L/C at Sight)'
+            : 'Direct Bank Wire',
+          senderNumber: bankSenderInfo.trim() || undefined,
+          transactionId: bankReference.trim() || undefined
         } : undefined
       };
 
@@ -557,7 +547,7 @@ function CheckoutContent() {
 
   // Validation check for mandatory fields to show/hide the order button
   const watchedFields = form.watch();
-  const isPhoneValid = /^(?:01)[3-9]\d{8}$/.test(watchedFields.phone || '');
+  const isPhoneValid = (watchedFields.phone || '').trim().replace(/[^0-9]/g, '').length >= 7;
   const isAddressValid = (watchedFields.street || '').trim().length >= 5;
   const isNameValid = (watchedFields.fullName || '').trim().length >= 2;
   const isFormValid = !!(
@@ -565,7 +555,7 @@ function CheckoutContent() {
     isPhoneValid &&
     isAddressValid &&
     watchedFields.deliveryArea &&
-    (watchedFields.paymentMethod !== 'Manual' || (selectedMethod?.id && manualDetails.senderNumber && manualDetails.transactionId))
+    watchedFields.paymentMethod
   );
 
   const potentialReward = (profile?.isSubscriptionActive && settings?.subscriptionConfig)
@@ -595,16 +585,16 @@ function CheckoutContent() {
         <ShoppingBag className="w-12 h-12 text-muted-foreground" />
       </div>
       <div className="space-y-2">
-        <h2 className="text-2xl font-black tracking-tight">আপনার কার্ট খালি!</h2>
+        <h2 className="text-2xl font-black tracking-tight">Your Cart is Empty!</h2>
         <p className="text-muted-foreground text-sm max-w-xs">
-          চেকআউট করতে আগে কিছু পণ্য কার্টে যোগ করুন।
+          Please add items to your cart before proceeding to checkout.
         </p>
       </div>
       <Button
         onClick={() => router.push('/shop')}
         className="rounded-full px-8 h-11 font-bold"
       >
-        শপে যান <ArrowRight className="ml-2 h-4 w-4" />
+        Continue Shopping <ArrowRight className="ml-2 h-4 w-4" />
       </Button>
     </div>
   );
@@ -723,7 +713,7 @@ function CheckoutContent() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-xl">
                     <Truck className="h-6 w-6 text-primary" />
-                    ডেলিভারি তথ্য
+                    Shipping & Delivery Information
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
@@ -732,9 +722,9 @@ function CheckoutContent() {
                     name="fullName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>পূর্ণ নাম</FormLabel>
+                        <FormLabel>Full Name</FormLabel>
                         <FormControl>
-                          <Input placeholder="আপনার পূর্ণ নাম লিখুন" {...field} className="h-11 focus-visible:ring-primary/20" />
+                          <Input placeholder="Enter your full name" {...field} className="h-11 focus-visible:ring-primary/20" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -745,9 +735,9 @@ function CheckoutContent() {
                     name="phone"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>মোবাইল নম্বর</FormLabel>
+                        <FormLabel>Phone Number</FormLabel>
                         <FormControl>
-                          <Input placeholder="যেমন: 017XXXXXXXX" {...field} className="h-11 focus-visible:ring-primary/20" />
+                          <Input placeholder="e.g. +1 555 123 4567" {...field} className="h-11 focus-visible:ring-primary/20" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -758,7 +748,7 @@ function CheckoutContent() {
                     name="deliveryArea"
                     render={({ field }) => (
                       <FormItem className="space-y-3">
-                        <FormLabel className="font-bold">ডেলিভারি এলাকা</FormLabel>
+                        <FormLabel className="font-bold">Shipping Method</FormLabel>
                         <FormControl>
                           <RadioGroup
                             onValueChange={field.onChange}
@@ -770,7 +760,7 @@ function CheckoutContent() {
                                 <RadioGroupItem value="inside" />
                               </FormControl>
                               <FormLabel className="font-medium cursor-pointer text-sm">
-                                ঢাকার ভিতরে
+                                Standard Shipping (${settings?.deliveryChargeInsideDhaka ?? 60})
                               </FormLabel>
                             </FormItem>
                             <FormItem className="flex items-center space-x-2 space-y-0 cursor-pointer">
@@ -778,7 +768,7 @@ function CheckoutContent() {
                                 <RadioGroupItem value="outside" />
                               </FormControl>
                               <FormLabel className="font-medium cursor-pointer text-sm">
-                                ঢাকার বাইরে
+                                Express Shipping (${settings?.deliveryChargeOutsideDhaka ?? 120})
                               </FormLabel>
                             </FormItem>
                           </RadioGroup>
@@ -792,9 +782,9 @@ function CheckoutContent() {
                     name="street"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>সম্পূর্ণ ঠিকানা</FormLabel>
+                        <FormLabel>Shipping Address</FormLabel>
                         <FormControl>
-                          <Input placeholder="গ্রাম/বাসা নং, রোড নং, এলাকা, থানা, জেলা" {...field} className="h-11 focus-visible:ring-primary/20" />
+                          <Input placeholder="Street address, apartment, city, state, zip code" {...field} className="h-11 focus-visible:ring-primary/20" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -914,44 +904,81 @@ function CheckoutContent() {
                           <RadioGroup
                             onValueChange={field.onChange}
                             value={field.value}
-                            className="flex flex-col space-y-2"
+                            className="flex flex-col space-y-3"
                           >
-                            <FormItem className="flex items-center space-x-3 space-y-0 border rounded-lg p-4 cursor-pointer hover:bg-muted/50 transition-colors">
-                              <FormControl>
-                                <RadioGroupItem value="COD" />
+                            {/* 1. Telegraphic Transfer (T/T) */}
+                            <FormItem className={`flex items-start space-x-3 space-y-0 border rounded-xl p-4 cursor-pointer transition-all ${field.value === 'TT' ? 'border-primary bg-primary/5 shadow-sm ring-1 ring-primary/20' : 'hover:bg-muted/50'}`}>
+                              <FormControl className="mt-1">
+                                <RadioGroupItem value="TT" />
                               </FormControl>
                               <FormLabel className="font-bold flex-1 cursor-pointer">
-                                Cash on Delivery (COD)
-                                <p className="text-xs font-normal text-muted-foreground mt-1">Pay when you receive the product.</p>
+                                <div className="flex items-center justify-between">
+                                  <span className="text-sm font-black flex items-center gap-2">
+                                    <Landmark className="h-4 w-4 text-primary" /> Telegraphic Transfer (T/T)
+                                  </span>
+                                  <Badge variant="outline" className="text-[10px] uppercase font-bold border-primary text-primary">Standard B2B Wire</Badge>
+                                </div>
+                                <p className="text-xs font-normal text-muted-foreground mt-1">
+                                  International Bank Wire Transfer (SWIFT / BIC). Proforma Invoice with complete bank coordinates will be issued.
+                                </p>
                               </FormLabel>
                             </FormItem>
+
+                            {/* 2. Letter of Credit (L/C) */}
+                            <FormItem className={`flex items-start space-x-3 space-y-0 border rounded-xl p-4 cursor-pointer transition-all ${field.value === 'LC' ? 'border-primary bg-primary/5 shadow-sm ring-1 ring-primary/20' : 'hover:bg-muted/50'}`}>
+                              <FormControl className="mt-1">
+                                <RadioGroupItem value="LC" />
+                              </FormControl>
+                              <FormLabel className="font-bold flex-1 cursor-pointer">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-sm font-black flex items-center gap-2">
+                                    <FileText className="h-4 w-4 text-primary" /> Letter of Credit (L/C at Sight)
+                                  </span>
+                                  <Badge variant="outline" className="text-[10px] uppercase font-bold">Documentary Credit</Badge>
+                                </div>
+                                <p className="text-xs font-normal text-muted-foreground mt-1">
+                                  Irrevocable Commercial L/C at Sight. Formal Proforma Invoice with advising bank details will be provided for your bank.
+                                </p>
+                              </FormLabel>
+                            </FormItem>
+
+                            {/* 3. Direct Bank Transfer */}
+                            <FormItem className={`flex items-start space-x-3 space-y-0 border rounded-xl p-4 cursor-pointer transition-all ${field.value === 'Bank Transfer' ? 'border-primary bg-primary/5 shadow-sm ring-1 ring-primary/20' : 'hover:bg-muted/50'}`}>
+                              <FormControl className="mt-1">
+                                <RadioGroupItem value="Bank Transfer" />
+                              </FormControl>
+                              <FormLabel className="font-bold flex-1 cursor-pointer">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-sm font-black flex items-center gap-2">
+                                    <Building2 className="h-4 w-4 text-primary" /> Direct Bank Wire Transfer
+                                  </span>
+                                  <Badge variant="outline" className="text-[10px] uppercase font-bold">ACH / Fedwire / SEPA</Badge>
+                                </div>
+                                <p className="text-xs font-normal text-muted-foreground mt-1">
+                                  Direct domestic/international bank transfer into our corporate trading account.
+                                </p>
+                              </FormLabel>
+                            </FormItem>
+
+                            {/* 4. Secure Online Payment (Card) - if enabled */}
                             {settings?.paymentConfig?.activeMethod === 'sslcommerz' && (
-                              <FormItem className="flex items-center space-x-3 space-y-0 border rounded-lg p-4 cursor-pointer hover:bg-muted/50 transition-colors">
-                                <FormControl>
+                              <FormItem className={`flex items-start space-x-3 space-y-0 border rounded-xl p-4 cursor-pointer transition-all ${field.value === 'Online' ? 'border-primary bg-primary/5 shadow-sm ring-1 ring-primary/20' : 'hover:bg-muted/50'}`}>
+                                <FormControl className="mt-1">
                                   <RadioGroupItem value="Online" />
                                 </FormControl>
                                 <FormLabel className="font-bold flex-1 cursor-pointer">
-                                  Online Payment (SSLCommerz)
-                                  <p className="text-xs font-normal text-muted-foreground mt-1">Pay securely via Credit Card, bKash, or Rocket.</p>
-                                  <Badge variant="secondary" className="mt-2 text-[10px]">Recommended</Badge>
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-sm font-black flex items-center gap-2">
+                                      <CreditCard className="h-4 w-4 text-primary" /> Credit / Debit Card
+                                    </span>
+                                    <Badge variant="secondary" className="text-[10px] uppercase font-bold">Instant Online</Badge>
+                                  </div>
+                                  <p className="text-xs font-normal text-muted-foreground mt-1">
+                                    Pay securely with Visa, MasterCard, or American Express.
+                                  </p>
                                 </FormLabel>
                               </FormItem>
                             )}
-
-                            {(settings?.manualPaymentConfig?.bkash?.active ||
-                              settings?.manualPaymentConfig?.nagad?.active ||
-                              settings?.manualPaymentConfig?.rocket?.active ||
-                              settings?.manualPaymentConfig?.banglaQr?.active) && (
-                                <FormItem className="flex items-center space-x-3 space-y-0 border rounded-lg p-4 cursor-pointer hover:bg-muted/50 transition-colors">
-                                  <FormControl>
-                                    <RadioGroupItem value="Manual" />
-                                  </FormControl>
-                                  <FormLabel className="font-bold flex-1 cursor-pointer">
-                                    Manual Payment (MFS / Bangla QR)
-                                    <p className="text-xs font-normal text-muted-foreground mt-1">Send money manually or scan QR to pay.</p>
-                                  </FormLabel>
-                                </FormItem>
-                              )}
                           </RadioGroup>
                         </FormControl>
                         <FormMessage />
@@ -959,47 +986,72 @@ function CheckoutContent() {
                     )}
                   />
 
-                  {/* Manual Payment Option Selection (Cards) */}
-                  {form.watch('paymentMethod') === 'Manual' && settings?.manualPaymentConfig && (
-                    <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3 animate-in fade-in slide-in-from-top duration-300">
-                      {['bkash', 'nagad', 'rocket', 'banglaQr'].map((method) => {
-                        const config = settings.manualPaymentConfig[method];
-                        if (!config?.active) return null;
-                        const isSelected = selectedMethod?.id === method;
-                        return (
-                          <div
-                            key={method}
-                            onClick={() => {
-                              setSelectedMethod({ id: method, ...config });
-                              setShowPaymentModal(true);
-                            }}
-                            className={`p-4 rounded-xl border-2 transition-all cursor-pointer flex flex-col items-center gap-2 hover:bg-muted/50 ${isSelected ? 'border-primary bg-primary/5' : 'border-muted'
-                              }`}
-                          >
-                            <div className="h-10 w-10 flex items-center justify-center">
-                              {method === 'banglaQr' ? (
-                                <Globe className="h-8 w-8 text-primary" />
-                              ) : (
-                                <Image src={`/assets/${method}logo.webp`} alt={method || "Payment MFS Logo"} width={40} height={40} className="h-full w-auto object-contain" />
-                              )}
-                            </div>
-                            <p className="text-[10px] font-bold uppercase">{method === 'banglaQr' ? 'Bangla QR' : method}</p>
-                            {isSelected && (
-                              <div className="text-[8px] font-bold text-primary flex items-center gap-1 mt-1">
-                                <CheckCircle2 className="h-2 w-2" /> Details Added
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
+                  {/* Payment Details / Instructions Card based on selection */}
+                  {form.watch('paymentMethod') === 'TT' && (
+                    <div className="p-4 rounded-xl border border-primary/20 bg-primary/5 space-y-3 animate-in fade-in duration-300">
+                      <div className="flex items-center gap-2 text-xs font-bold text-primary">
+                        <Landmark className="h-4 w-4" /> Telegraphic Transfer (T/T) Instructions:
+                      </div>
+                      <div className="text-xs text-muted-foreground space-y-1 bg-background/80 p-3 rounded-lg border">
+                        <p><strong className="text-foreground">Beneficiary Name:</strong> {settings?.brandName || 'Climax Apparels Ltd.'}</p>
+                        <p><strong className="text-foreground">Settlement Currency:</strong> USD / EUR / GBP</p>
+                        <p><strong className="text-foreground">SWIFT / BIC & IBAN:</strong> Provided on official Proforma Invoice (PI)</p>
+                        <p><strong className="text-foreground">Payment Term:</strong> Standard Trade Terms (Advance / Wire)</p>
+                      </div>
+                      <div className="space-y-1.5 pt-1">
+                        <Label className="text-xs font-bold">Buyer Bank / PO Reference <span className="text-muted-foreground font-normal">(Optional)</span></Label>
+                        <Input
+                          placeholder="e.g. JPMorgan Chase / PO-2026-US-001"
+                          value={bankReference}
+                          onChange={(e) => setBankReference(e.target.value)}
+                          className="h-10 text-xs bg-background"
+                        />
+                      </div>
                     </div>
                   )}
 
-                  {/* Validation Message for Manual Payment */}
-                  {form.watch('paymentMethod') === 'Manual' && !selectedMethod?.id && (
-                    <p className="text-[10px] text-destructive font-bold text-center mt-2 animate-pulse">
-                      Please select a provider and provide payment details!
-                    </p>
+                  {form.watch('paymentMethod') === 'LC' && (
+                    <div className="p-4 rounded-xl border border-primary/20 bg-primary/5 space-y-3 animate-in fade-in duration-300">
+                      <div className="flex items-center gap-2 text-xs font-bold text-primary">
+                        <FileText className="h-4 w-4" /> Letter of Credit (L/C at Sight) Settlement:
+                      </div>
+                      <div className="text-xs text-muted-foreground space-y-1 bg-background/80 p-3 rounded-lg border">
+                        <p><strong className="text-foreground">Documentary Credit:</strong> 100% Irrevocable Letter of Credit at Sight</p>
+                        <p><strong className="text-foreground">Advising / Nominated Bank:</strong> HSBC / Standard Chartered Bank</p>
+                        <p><strong className="text-foreground">Next Step:</strong> Formal Proforma Invoice (PI) with banking coordinates will be generated for your bank.</p>
+                      </div>
+                      <div className="space-y-1.5 pt-1">
+                        <Label className="text-xs font-bold">Buyer's Issuing Bank & Country <span className="text-muted-foreground font-normal">(Optional)</span></Label>
+                        <Input
+                          placeholder="e.g. Deutsche Bank AG, Frankfurt, Germany"
+                          value={bankReference}
+                          onChange={(e) => setBankReference(e.target.value)}
+                          className="h-10 text-xs bg-background"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {form.watch('paymentMethod') === 'Bank Transfer' && (
+                    <div className="p-4 rounded-xl border border-primary/20 bg-primary/5 space-y-3 animate-in fade-in duration-300">
+                      <div className="flex items-center gap-2 text-xs font-bold text-primary">
+                        <Building2 className="h-4 w-4" /> Direct Bank Wire Details:
+                      </div>
+                      <div className="text-xs text-muted-foreground space-y-1 bg-background/80 p-3 rounded-lg border">
+                        <p><strong className="text-foreground">Account Holder:</strong> {settings?.brandName || 'Climax Apparels Ltd.'}</p>
+                        <p><strong className="text-foreground">Payment Routing:</strong> Fedwire (US) / SEPA (Europe) / International SWIFT</p>
+                        <p className="text-[11px] text-muted-foreground">Order will be confirmed and processed upon wire verification.</p>
+                      </div>
+                      <div className="space-y-1.5 pt-1">
+                        <Label className="text-xs font-bold">Transaction / Wire Note <span className="text-muted-foreground font-normal">(Optional)</span></Label>
+                        <Input
+                          placeholder="e.g. Wire Transfer Reference ID"
+                          value={bankReference}
+                          onChange={(e) => setBankReference(e.target.value)}
+                          className="h-10 text-xs bg-background"
+                        />
+                      </div>
+                    </div>
                   )}
 
                   {profile && profile.walletBalance > 0 && (
@@ -1033,11 +1085,11 @@ function CheckoutContent() {
                     disabled={loading || !isFormValid || syncData?.hasInsufficientStock || isPendingOrderBlocked}
                   >
                     {loading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <CheckCircle2 className="mr-2 h-5 w-5" />}
-                    {isPendingOrderBlocked ? 'পেন্ডিং অর্ডার রয়েছে' : syncData?.hasInsufficientStock ? 'পর্যাপ্ত স্টক নেই' : 'অর্ডার নিশ্চিত করুন'}
+                    {isPendingOrderBlocked ? 'Pending Order in Progress' : syncData?.hasInsufficientStock ? 'Insufficient Stock' : 'Place Order'}
                   </Button>
                   {!isFormValid && (
                     <p className="text-[10px] font-bold text-muted-foreground text-center w-full uppercase tracking-widest">
-                      অর্ডার সম্পন্ন করতে ডেলিভারি তথ্য পূরণ করুন
+                      Please complete shipping & payment details to place order
                     </p>
                   )}
                 </CardFooter>
@@ -1047,170 +1099,10 @@ function CheckoutContent() {
         </div>
       </div>
 
-      {/* Manual Payment Verification Modal */}
-      <Dialog open={showPaymentModal} onOpenChange={setShowPaymentModal}>
-        <DialogContent className="sm:max-w-[425px] rounded-3xl p-0 overflow-hidden border-none shadow-2xl flex flex-col max-h-[90vh]">
-          <DialogHeader className="py-4 px-6 bg-gradient-to-br from-primary to-primary/80 text-white relative shrink-0">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 bg-white rounded-xl p-1.5 shadow-md shrink-0 flex items-center justify-center">
-                {selectedMethod?.id === 'banglaQr' ? (
-                  <Globe className="h-6 w-6 text-primary" />
-                ) : (
-                  <Image src={`/assets/${selectedMethod?.id}logo.webp`} alt={selectedMethod?.id || "Payment Method Logo"} width={40} height={40} className="h-full w-auto object-contain" />
-                )}
-              </div>
-              <div className="text-left">
-                <DialogTitle className="text-base md:text-lg font-black uppercase tracking-tight">
-                  {selectedMethod?.id === 'banglaQr' ? 'Pay via Bangla QR' : `Pay via ${selectedMethod?.id}`}
-                </DialogTitle>
-              </div>
-            </div>
-          </DialogHeader>
-
-          {/* Scrollable Modal Body */}
-          <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4 max-h-[60vh] pr-2">
-            {/* Payment Info */}
-            <div className="bg-primary/5 rounded-2xl p-4 border border-primary/10 space-y-3">
-              {selectedMethod?.id !== 'banglaQr' && (
-                <>
-                  <div className="flex justify-between items-center">
-                    <span className="text-[9px] font-black uppercase tracking-widest opacity-50">Send Money To</span>
-                    <Badge variant="secondary" className="bg-primary/10 text-primary border-none font-bold text-[9px] py-0.5 px-1.5">Personal Number</Badge>
-                  </div>
-                  <div className="flex items-center justify-between gap-3 mt-1">
-                    <p className="text-lg font-black tracking-widest text-slate-900 dark:text-zinc-50 bg-white dark:bg-zinc-800 px-3 py-1.5 rounded-lg border border-primary/10 flex-1 text-center select-all">
-                      {selectedMethod?.number}
-                    </p>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-9 rounded-lg text-[10px] font-bold border hover:bg-primary hover:text-white transition-all shrink-0"
-                      onClick={() => {
-                        navigator.clipboard.writeText(selectedMethod?.number);
-                        toast.success('Number copied to clipboard!');
-                      }}
-                    >
-                      Copy
-                    </Button>
-                  </div>
-                </>
-              )}
-
-              {(selectedMethod?.qrCode || selectedMethod?.id === 'banglaQr') && (
-                <div className="flex flex-col items-center gap-1.5 pt-2 border-t border-primary/10">
-                  <p className="text-[9px] font-bold uppercase opacity-40">Scan QR Code to Pay</p>
-                  <div className="p-1.5 bg-white rounded-lg shadow-sm border border-primary/10">
-                    <Image src={selectedMethod?.qrCode || '/assets/placeholder-qr.png'} alt="QR" width={128} height={128} className="h-32 w-32 object-contain" />
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Instruction Panel */}
-            <div className="bg-slate-50 dark:bg-zinc-950 rounded-xl p-3 border border-slate-200 dark:border-zinc-800 space-y-1.5">
-              <p className="text-[10px] font-black text-slate-700 dark:text-zinc-300 uppercase tracking-wider">পেমেন্ট নির্দেশিকা (পড়ুন):</p>
-              <div className="max-h-24 overflow-y-auto pr-1 space-y-1 text-[9px] leading-relaxed text-slate-600 dark:text-zinc-400 font-medium">
-                <p>১. আপনার <strong>{selectedMethod?.id === 'bkash' ? 'বিকাশ' : selectedMethod?.id === 'nagad' ? 'নগদ' : selectedMethod?.id === 'rocket' ? 'রকেট' : 'মোবাইল'}</strong> অ্যাপে যান অথবা USSD ডায়াল করে <strong>"Send Money"</strong> অপশন সিলেক্ট করুন।</p>
-                {selectedMethod?.id !== 'banglaQr' ? (
-                  <p>২. উপরে দেওয়া <strong>Personal</strong> নম্বরটি কপি করে প্রাপক হিসেবে দিন।</p>
-                ) : (
-                  <p>২. উপরে দেওয়া <strong>Bangla QR</strong> কোডটি আপনার ব্যাংক বা পেমেন্ট অ্যাপ দিয়ে স্ক্যান করুন।</p>
-                )}
-                <p>৩. মোট পেমেন্ট অ্যামাউন্ট <strong>${Math.round(totalAmount + (deliveryCharge || 0) - couponDiscount - (useWallet ? walletAmountToUse : 0))}</strong> সেন্ড মানি করুন।</p>
-                <p>৪. সফলভাবে টাকা পাঠানোর পর নিচের ট্যাব থেকে <strong>মোবাইল নম্বর</strong> অথবা <strong>TrxID</strong> যেকোনো একটি তথ্য দিয়ে পেমেন্ট নিশ্চিত করুন।</p>
-              </div>
-            </div>
-
-            {/* Selection Tabs */}
-            <div className="flex border-b border-slate-200 dark:border-zinc-800 mt-2">
-              <button
-                type="button"
-                onClick={() => setPaymentDetailTab('phone')}
-                className={`flex-1 pb-1.5 text-[11px] font-bold text-center border-b-2 transition-all ${paymentDetailTab === 'phone'
-                    ? 'border-primary text-primary'
-                    : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-zinc-200'
-                  }`}
-              >
-                {selectedMethod?.id === 'bkash' ? 'বিকাশ' : selectedMethod?.id === 'nagad' ? 'নগদ' : selectedMethod?.id === 'rocket' ? 'রকেট' : 'মোবাইল'} নম্বর দিয়ে
-              </button>
-              <button
-                type="button"
-                onClick={() => setPaymentDetailTab('trx')}
-                className={`flex-1 pb-1.5 text-[11px] font-bold text-center border-b-2 transition-all ${paymentDetailTab === 'trx'
-                    ? 'border-primary text-primary'
-                    : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-zinc-200'
-                  }`}
-              >
-                ট্রানজেকশন আইডি (TrxID) দিয়ে
-              </button>
-            </div>
-
-            {/* Verification Field based on active tab */}
-            <div className="space-y-3 pt-1">
-              {paymentDetailTab === 'phone' ? (
-                <div className="space-y-1.5">
-                  <Label className="text-[10px] font-black uppercase opacity-60">আপনার {selectedMethod?.id === 'bkash' ? 'বিকাশ' : selectedMethod?.id === 'nagad' ? 'নগদ' : selectedMethod?.id === 'rocket' ? 'রকেট' : 'মোবাইল'} নম্বর</Label>
-                  <Input
-                    placeholder="যে নম্বর থেকে টাকা পাঠিয়েছেন (যেমন: 017XXXXXXXX)"
-                    value={manualDetails.senderNumber}
-                    onChange={(e) => setManualDetails({ ...manualDetails, senderNumber: e.target.value })}
-                    className="h-10 rounded-lg text-xs focus:ring-primary/20 bg-background"
-                  />
-                </div>
-              ) : (
-                <div className="space-y-1.5">
-                  <Label className="text-[10px] font-black uppercase opacity-60">ট্রানজেকশন আইডি (TrxID)</Label>
-                  <Input
-                    placeholder="যেমন: 8N7A6D5C"
-                    value={manualDetails.transactionId}
-                    onChange={(e) => setManualDetails({ ...manualDetails, transactionId: e.target.value.toUpperCase() })}
-                    className="h-10 rounded-lg text-xs focus:ring-primary/20 bg-background"
-                  />
-                </div>
-              )}
-            </div>
-
-            {settings?.manualPaymentConfig?.instructions && (
-              <div className="p-3 bg-muted/30 rounded-lg">
-                <p className="text-[9px] leading-relaxed text-muted-foreground italic">
-                  <strong>নির্দেশনা:</strong> {settings.manualPaymentConfig.instructions}
-                </p>
-              </div>
-            )}
-          </div>
-
-          <DialogFooter className="p-4 bg-muted/20 border-t flex flex-row gap-3 shrink-0">
-            <Button variant="outline" onClick={() => setShowPaymentModal(false)} className="rounded-full h-10 flex-1 font-bold text-xs bg-background">বাতিল করুন</Button>
-            <Button
-              disabled={
-                paymentDetailTab === 'phone'
-                  ? !manualDetails.senderNumber.trim()
-                  : !manualDetails.transactionId.trim()
-              }
-              onClick={async () => {
-                const isValid = await form.trigger();
-                if (isValid) {
-                  setShowPaymentModal(false);
-                  toast.success(`${selectedMethod?.id.toUpperCase()} details saved!`);
-                  await form.handleSubmit(onSubmit)();
-                } else {
-                  setShowPaymentModal(false);
-                  toast.error('দয়া করে ডেলিভারি তথ্য সম্পূর্ণ করুন!');
-                }
-              }}
-              className="rounded-full h-10 flex-1 font-black uppercase tracking-widest text-xs shadow-md shadow-primary/10"
-            >
-              পেমেন্ট নিশ্চিত করুন
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* ✅ Order Success Modal */}
+      {/* Order Success Modal */}
       <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
         <DialogContent className="max-w-md p-0 overflow-hidden border-0 shadow-2xl">
           <div className="flex flex-col items-center text-center p-8 gap-6">
-            {/* Animated icon */}
             <div className="relative">
               <div className="w-24 h-24 rounded-full bg-green-500/10 flex items-center justify-center border-4 border-green-500/20 shadow-xl shadow-green-500/20 animate-in zoom-in-50 duration-500">
                 <PartyPopper className="w-12 h-12 text-green-500" />
@@ -1220,11 +1112,10 @@ function CheckoutContent() {
               </div>
             </div>
 
-            {/* Text */}
             <div className="space-y-2">
-              <h2 className="text-2xl font-black tracking-tight">অর্ডার সফল হয়েছে!</h2>
+              <h2 className="text-2xl font-black tracking-tight">Order Placed Successfully!</h2>
               <p className="text-muted-foreground text-sm leading-relaxed">
-                আপনার অর্ডারটি সফলভাবে গ্রহণ করা হয়েছে। আমরা শীঘ্রই আপনার সাথে যোগাযোগ করবো।
+                Thank you for your order. We have received your order details and our export & trade desk will contact you with your formal Proforma Invoice (PI) and settlement coordinates.
               </p>
               {successOrderId && (
                 <p className="text-xs font-mono bg-muted px-3 py-1.5 rounded-full inline-block text-muted-foreground">
@@ -1233,21 +1124,20 @@ function CheckoutContent() {
               )}
             </div>
 
-            {/* Buttons */}
             <div className="flex flex-col gap-3 w-full pt-2">
               <Button
                 onClick={() => { setShowSuccessModal(false); router.push('/shop'); }}
                 className="w-full h-11 rounded-full font-bold shadow-lg shadow-primary/20"
               >
                 <ShoppingBag className="w-4 h-4 mr-2" />
-                শপিং চালিয়ে যান
+                Continue Shopping
               </Button>
               <Button
                 variant="outline"
                 onClick={() => { setShowSuccessModal(false); router.push('/dashboard'); }}
                 className="w-full h-11 rounded-full font-bold"
               >
-                আমার অর্ডার দেখুন
+                View My Orders
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             </div>
@@ -1255,37 +1145,34 @@ function CheckoutContent() {
         </DialogContent>
       </Dialog>
 
-      {/* ❌ Payment Failed Modal */}
+      {/* Payment Failed Modal */}
       <Dialog open={showFailModal} onOpenChange={setShowFailModal}>
         <DialogContent className="max-w-md p-0 overflow-hidden border-0 shadow-2xl">
           <div className="flex flex-col items-center text-center p-8 gap-6">
-            {/* Icon */}
             <div className="w-24 h-24 rounded-full bg-destructive/10 flex items-center justify-center border-4 border-destructive/20 shadow-xl shadow-destructive/20 animate-in zoom-in-50 duration-500">
               <XCircle className="w-12 h-12 text-destructive" />
             </div>
 
-            {/* Text */}
             <div className="space-y-2">
-              <h2 className="text-2xl font-black tracking-tight text-destructive">পেমেন্ট ব্যর্থ হয়েছে</h2>
+              <h2 className="text-2xl font-black tracking-tight text-destructive">Payment Failed</h2>
               <p className="text-muted-foreground text-sm leading-relaxed">
-                আপনার পেমেন্ট সম্পন্ন হয়নি। পুনরায় চেষ্টা করুন অথবা COD পেমেন্ট বেছে নিন।
+                Your payment could not be processed. Please try again or select an alternative settlement method.
               </p>
             </div>
 
-            {/* Buttons */}
             <div className="flex flex-col gap-3 w-full pt-2">
               <Button
                 onClick={() => setShowFailModal(false)}
                 className="w-full h-11 rounded-full font-bold"
               >
-                পুনরায় চেষ্টা করুন
+                Try Again
               </Button>
               <Button
                 variant="ghost"
                 onClick={() => { setShowFailModal(false); router.push('/shop'); }}
                 className="w-full h-11 rounded-full font-bold"
               >
-                শপে ফিরে যান
+                Back to Shop
               </Button>
             </div>
           </div>
