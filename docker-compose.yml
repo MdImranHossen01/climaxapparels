@@ -5,12 +5,14 @@ services:
     restart: unless-stopped
     ports:
       - "3001:3000"
+    environment:
+      - NODE_OPTIONS=--max-old-space-size=125
     env_file:
       - .env.local
     deploy:
       resources:
         limits:
-          memory: 180M
+          memory: 150M
         reservations:
           memory: 80M
     logging:
