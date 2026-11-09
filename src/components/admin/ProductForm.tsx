@@ -25,7 +25,8 @@ import {
   Loader2,
   ArrowLeft,
   X,
-  PlusCircle
+  PlusCircle,
+  Info
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { ImageUpload } from '@/components/ui/image-upload';
@@ -526,6 +527,23 @@ export function ProductForm({ initialData }: ProductFormProps) {
             <CardContent className="pt-6 space-y-4">
               <div className="flex items-center justify-between">
                 <Label>Gallery Images</Label>
+              </div>
+
+              {/* Image Upload Best Practice Guideline */}
+              <div className="rounded-lg border border-primary/20 bg-primary/5 p-3 text-xs space-y-1.5 text-muted-foreground">
+                <div className="flex items-center gap-1.5 font-semibold text-primary">
+                  <Info className="h-4 w-4 shrink-0" />
+                  <span>Image Upload Guidelines (For Best Quality & Zoom)</span>
+                </div>
+                <ul className="grid grid-cols-1 md:grid-cols-3 gap-x-3 gap-y-1 list-disc list-inside text-[11px] leading-relaxed">
+                  <li><strong>Max Size:</strong> Maximum file size is <strong>1 MB</strong> per image.</li>
+                  <li><strong>Ratio:</strong> 1:1 square or 3:4 portrait ratio is recommended.</li>
+                  <li><strong>Clean Background:</strong> Use bright lighting with neutral/light background for true colors.</li>
+                </ul>
+                <div className="flex items-center gap-1.5 text-destructive font-semibold text-[11px] bg-destructive/10 border border-destructive/20 rounded-md px-2.5 py-1.5 mt-1">
+                  <span className="font-bold uppercase tracking-wider text-[10px] bg-destructive text-white px-1.5 py-0.5 rounded">Max 1 MB • WebP</span>
+                  <span>Upload in <strong>.webp</strong> format (Max 1 MB) to ensure 100% original sharpness, zero quality loss, and instant loading!</span>
+                </div>
               </div>
               <div className="grid grid-cols-4 gap-4">
                 {form.watch('images').map((url, index) => (

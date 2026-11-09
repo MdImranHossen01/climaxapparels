@@ -41,9 +41,18 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  if (event.request.method !== 'GET') return;
-
   const url = new URL(event.request.url);
+
+  // Bypass Service Worker for Next.js internal RSC prefetches and APIs
+  if (
+    url.pathname.startsWith('/api/') ||
+    url.pathname.startsWith('/admin') ||
+    url.searchParams.has('_rsc') ||
+    event.request.headers.get('RSC') === '1' ||
+    url.pathname.startsWith('/_next/data/')
+  ) {
+    return;
+  }
 
   // Skip non-http schemes
   if (!['http:', 'https:'].includes(url.protocol)) return;

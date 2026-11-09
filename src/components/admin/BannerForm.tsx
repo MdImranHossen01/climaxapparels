@@ -256,7 +256,15 @@ export function BannerForm({ initialData }: BannerFormProps) {
                     )}
                   />
                 </div>
-                <p className="text-[0.8rem] text-muted-foreground italic">Recommended aspect ratio: 21:9 or 1920x800px for best display across all devices.</p>
+                                <div className="space-y-2 pt-1">
+                  <p className="text-xs text-muted-foreground">
+                    <strong>Recommended Dimensions:</strong> 21:9 aspect ratio or <strong>2100×900px</strong> for crisp display across all desktop, laptop & mobile screens.
+                  </p>
+                  <div className="flex items-center gap-1.5 text-destructive font-semibold text-[11px] bg-destructive/10 border border-destructive/20 rounded-md px-2.5 py-1.5">
+                    <span className="font-bold uppercase tracking-wider text-[10px] bg-destructive text-white px-1.5 py-0.5 rounded shrink-0">Recommendation</span>
+                    <span>Upload in <strong>.webp</strong> format to ensure 100% original sharpness, zero quality loss, and instant loading!</span>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </div>

@@ -244,6 +244,15 @@ export default function EditBlogPage() {
                     setImageLoadError(false);
                   }}
                 />
+                <div className="space-y-2 pt-1">
+                  <p className="text-xs text-muted-foreground">
+                    <strong>Recommended Dimensions:</strong> 16:9 aspect ratio or <strong>1200×630px</strong> for crisp display on blog listing, details & social sharing.
+                  </p>
+                  <div className="flex items-center gap-1.5 text-destructive font-semibold text-[11px] bg-destructive/10 border border-destructive/20 rounded-md px-2.5 py-1.5">
+                    <span className="font-bold uppercase tracking-wider text-[10px] bg-destructive text-white px-1.5 py-0.5 rounded shrink-0">Recommendation</span>
+                    <span>Upload in <strong>.webp</strong> format (Max 1 MB) to ensure 100% original sharpness, zero quality loss, and instant loading!</span>
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>
