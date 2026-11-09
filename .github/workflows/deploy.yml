@@ -56,6 +56,10 @@ jobs:
             mkdir -p ~/climaxapparels
             cd ~/climaxapparels
 
+            cat << 'EOF' > .env.local
+            ${{ secrets.ENV_FILE }}
+            EOF
+
             cat << 'EOF' > docker-compose.yml
             services:
               web:

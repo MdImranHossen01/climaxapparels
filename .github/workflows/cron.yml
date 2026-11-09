@@ -1,0 +1,27 @@
+name: Daily Cron Jobs (Midnight UTC)
+
+on:
+  schedule:
+    # Runs once daily at midnight UTC (06:00 AM Bangladesh time)
+    - cron: '0 0 * * *'
+  # Also allow manual triggering from GitHub Actions tab
+  workflow_dispatch:
+
+jobs:
+  sync-courier-status:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Sync Courier Delivery Status (Steadfast, Pathao & RedX)
+        run: |
+          response=$(curl -s -o /dev/null -w "%{http_code}" \
+            -X GET \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            "https://www.climaxapparels.com/api/cron/sync-courier-status")
+          echo "Response HTTP status: $response"
+          if [ "$response" != "200" ]; then
+            echo "❌ Courier sync failed with HTTP $response"
+            exit 1
+          else
+            echo "✅ Courier sync completed successfully"
+          fi
+

@@ -4,7 +4,7 @@ const accountId = process.env.R2_ACCOUNT_ID || '2a9302464bab79b94f3b96091e05eaa5
 const accessKeyId = process.env.R2_ACCESS_KEY_ID || '8d6ad7c48293e166cbf8f9d2ec9fd48e';
 const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY || '53554534cf0a5d79d00bb925cd285f3c9568788b1d86dec6384170c5bd0e3d22';
 export const R2_BUCKET_NAME = process.env.R2_BUCKET_NAME || 'climaxapparels';
-export const R2_PUBLIC_URL = process.env.NEXT_PUBLIC_R2_PUBLIC_URL || '';
+export const R2_PUBLIC_URL = process.env.NEXT_PUBLIC_R2_PUBLIC_URL || 'https://pub-6097ad99e6e94e079a0ee47bbbe3b921.r2.dev';
 
 export const r2Client = new S3Client({
   region: 'auto',
