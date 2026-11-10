@@ -66,7 +66,7 @@ async function handleSyncCourierStatus(req: NextRequest) {
       : null;
 
     // 2. Pathao credentials
-    const pathaoConfigData = settingsDoc.courierConfig?.pathao;
+    const pathaoConfigData = settingsDoc.courierConfig?.pathao as any;
     const isPathaoConfigured = Boolean(pathaoConfigData?.clientId && pathaoConfigData?.clientSecret);
     const pathaoProvider = isPathaoConfigured
       ? new PathaoProvider({
@@ -83,7 +83,7 @@ async function handleSyncCourierStatus(req: NextRequest) {
     const redxApiKey = settingsDoc.courierConfig?.redx?.apiKey;
     const isRedxConfigured = Boolean(redxApiKey);
     const redxConfig = isRedxConfigured
-      ? { apiKey: redxApiKey!, isSandbox: settingsDoc.courierConfig?.redx?.isSandbox }
+      ? { apiKey: redxApiKey!, isSandbox: (settingsDoc.courierConfig?.redx as any)?.isSandbox }
       : null;
 
     if (!isSteadfastConfigured && !isPathaoConfigured && !isRedxConfigured) {
@@ -246,7 +246,7 @@ async function handleSyncCourierStatus(req: NextRequest) {
           updateFields.status = 'Cancelled';
           const courierNameLabel = order.shippingDetails?.courierName || 'Courier';
           const cancelMsg = `[Courier Auto-Cancel] Delivery not completed by ${courierNameLabel}. Courier Status: "${courierStatus}". Auto-marked as Cancelled.`;
-          updateFields.internalNote = order.internalNote ? `${order.internalNote} | ${cancelMsg}` : cancelMsg;
+          updateFields.internalNote = (order as any).internalNote ? `${(order as any).internalNote} | ${cancelMsg}` : cancelMsg;
 
           cancelledCount++;
           results.push({
