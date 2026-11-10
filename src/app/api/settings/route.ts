@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { revalidateTag, revalidatePath } from 'next/cache';
+import { purgeCloudflareCache } from '@/lib/cloudflareCache';
 import connectToDatabase from '@/lib/db';
 import GlobalSettings from '@/models/GlobalSettings';
 import { auth } from '@/auth';
@@ -214,6 +215,7 @@ export async function POST(req: NextRequest) {
     revalidatePath('/', 'layout');
     revalidatePath('/shop', 'page');
     revalidatePath('/blog', 'page');
+    purgeCloudflareCache().catch(() => {});
 
     // Mask sensitive response data for the return
     const updatedRaw = settings.toObject({ getters: false });

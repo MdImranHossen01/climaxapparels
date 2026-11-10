@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { revalidatePath, revalidateTag } from 'next/cache';
+import { purgeCloudflareCache } from '@/lib/cloudflareCache';
 import connectToDatabase from '@/lib/db';
 import Blog from '@/models/Blog';
 import { auth } from '@/auth';
@@ -76,6 +77,7 @@ export async function POST(req: NextRequest) {
       revalidatePath('/');
       revalidatePath('/blog');
       revalidateTag('blogs', 'max');
+      purgeCloudflareCache().catch(() => {});
     } catch (revalidateError) {
       console.error('[Admin Blog Create revalidatePath] error:', revalidateError);
     }

@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { revalidateTag, revalidatePath } from 'next/cache';
 import { auth } from '@/auth';
+import { purgeCloudflareCache } from '@/lib/cloudflareCache';
 
 export async function POST(req: NextRequest) {
   try {
@@ -32,6 +33,9 @@ export async function POST(req: NextRequest) {
       revalidatePath('/', 'layout');
       console.log('Revalidated all main tags');
     }
+
+    // Automatically purge Cloudflare Edge Cache
+    await purgeCloudflareCache();
 
     return NextResponse.json({ message: 'Revalidation successful' });
   } catch (error: any) {

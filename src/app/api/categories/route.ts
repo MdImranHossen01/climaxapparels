@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { revalidateTag, revalidatePath } from 'next/cache';
+import { purgeCloudflareCache } from '@/lib/cloudflareCache';
 import connectToDatabase from '@/lib/db';
 import Category from '@/models/Category';
 import { auth } from '@/auth';
@@ -52,6 +53,7 @@ export async function POST(req: NextRequest) {
 
     revalidateTag('categories', 'max');
     revalidatePath('/');
+    purgeCloudflareCache().catch(() => {});
 
     return NextResponse.json(newCategory, { status: 201 });
   } catch (error) {

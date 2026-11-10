@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from 'next/server';
 import { revalidateTag, revalidatePath } from 'next/cache';
+import { purgeCloudflareCache } from '@/lib/cloudflareCache';
 import mongoose from 'mongoose';
 import connectToDatabase from '@/lib/db';
 import Category from '@/models/Category';
@@ -73,6 +74,7 @@ export async function PUT(
 
     await revalidateTag('categories', 'max');
     revalidatePath('/');
+    purgeCloudflareCache().catch(() => {});
 
     return NextResponse.json(updatedCategory);
   } catch (error) {
@@ -127,6 +129,7 @@ export async function DELETE(
       try {
         await revalidateTag('categories', 'max');
         revalidatePath('/');
+        purgeCloudflareCache().catch(() => {});
       } catch (e) {
         console.error('Revalidation error:', e);
       }

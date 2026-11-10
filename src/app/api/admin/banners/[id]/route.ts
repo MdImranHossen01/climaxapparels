@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidateTag, revalidatePath } from 'next/cache';
 import connectToDatabase from '@/lib/db';
 import Banner from '@/models/Banner';
 import { auth } from '@/auth';
 import mongoose from 'mongoose';
+import { purgeCloudflareCache } from '@/lib/cloudflareCache';
 
 export async function PUT(
   req: NextRequest,
@@ -27,6 +29,10 @@ export async function PUT(
     if (!banner) {
       return NextResponse.json({ message: 'Banner not found' }, { status: 404 });
     }
+
+    revalidateTag('banners', 'max');
+    revalidatePath('/');
+    purgeCloudflareCache().catch(() => {});
 
     return NextResponse.json(banner);
   } catch (error) {
@@ -57,6 +63,10 @@ export async function DELETE(
     if (!banner) {
       return NextResponse.json({ message: 'Banner not found' }, { status: 404 });
     }
+
+    revalidateTag('banners', 'max');
+    revalidatePath('/');
+    purgeCloudflareCache().catch(() => {});
 
     return NextResponse.json({ message: 'Banner deleted successfully' });
   } catch (error) {

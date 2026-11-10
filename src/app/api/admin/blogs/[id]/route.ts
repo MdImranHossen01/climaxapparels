@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { revalidatePath, revalidateTag } from 'next/cache';
+import { purgeCloudflareCache } from '@/lib/cloudflareCache';
 import connectToDatabase from '@/lib/db';
 import Blog from '@/models/Blog';
 import { auth } from '@/auth';
@@ -90,6 +91,7 @@ export async function PUT(
       revalidatePath('/blog');
       revalidatePath(`/blog/${blog.slug}`);
       revalidateTag('blogs', 'max');
+      purgeCloudflareCache().catch(() => {});
     } catch (revalidateError) {
       console.error('[Admin Blog Update revalidatePath] error:', revalidateError);
     }
@@ -130,6 +132,7 @@ export async function DELETE(
       revalidatePath('/blog');
       revalidatePath(`/blogs/${blog.slug}`);
       revalidateTag('blogs', 'max');
+      purgeCloudflareCache().catch(() => {});
     } catch (revalidateError) {
       console.error('[Admin Blog Delete revalidatePath] error:', revalidateError);
     }
