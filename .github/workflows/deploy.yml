@@ -67,7 +67,7 @@ jobs:
                 container_name: climaxapparels-app
                 restart: unless-stopped
                 ports:
-                  - "3001:3000"
+                  - "3008:3000"
                 environment:
                   - NODE_OPTIONS=--max-old-space-size=125
                 env_file:
