@@ -13,25 +13,47 @@ interface UploadOptions {
 }
 
 /**
+ * Helper to encode a canvas to WebP blob.
+ * Note: Safari/iOS WebKit may silently fall back to 'image/png' if WebP encoding is unsupported,
+ * ignoring the quality parameter and producing huge >1MB lossless PNG blobs!
+ * We strictly verify `blob.type === 'image/webp'` so non-WebP fallbacks are rejected and handled by server-side Sharp.
+ */
+function canvasToWebpBlob(canvas: HTMLCanvasElement, quality: number): Promise<Blob | null> {
+  return new Promise((resolve) => {
+    canvas.toBlob(
+      (blob) => {
+        if (!blob || blob.type !== 'image/webp') {
+          resolve(null);
+          return;
+        }
+        resolve(blob);
+      },
+      'image/webp',
+      quality
+    );
+  });
+}
+
+/**
  * Fast, adaptive client-side image compression to WebP.
  * Strictly guarantees size within targetMaxKB without quality degradation or loop freezes.
- * - Products: maxDim = 1200px, quality = 82% (0.82), targetMaxKB = 150KB
- * - Banners / Hero: maxDim = 2100px, quality = 82% (0.82), targetMaxKB = 400KB
+ * - Products / General: maxDim = 1200px, quality = 82% -> step down until <= 150KB
+ * - Banners / Hero: maxDim = 2100px, quality = 82% -> step down until <= 400KB
  */
 async function compressImageInBrowser(
-  file: File, 
-  targetMaxKB = 150, 
+  file: File,
+  targetMaxKB = 150,
   maxDim = 1200
 ): Promise<File> {
-  return new Promise((resolve) => {
-    if (!file.type.startsWith('image/') || file.type.includes('svg') || file.type.includes('gif')) {
-      return resolve(file);
-    }
+  if (!file.type.startsWith('image/') || file.type.includes('svg') || file.type.includes('gif')) {
+    return file;
+  }
 
+  return new Promise((resolve) => {
     const img = new window.Image();
     const objectUrl = URL.createObjectURL(file);
 
-    img.onload = () => {
+    img.onload = async () => {
       URL.revokeObjectURL(objectUrl);
       let { width, height } = img;
       if (width > maxDim || height > maxDim) {
@@ -44,65 +66,59 @@ async function compressImageInBrowser(
         }
       }
 
-      const canvas = document.createElement('canvas');
-      canvas.width = width;
-      canvas.height = height;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) return resolve(file);
-
-      ctx.imageSmoothingEnabled = true;
-      ctx.imageSmoothingQuality = 'high';
-      ctx.drawImage(img, 0, 0, width, height);
-
+      const targetBytes = targetMaxKB * 1024;
       const nameWithoutExt = file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
       const filename = `${nameWithoutExt}.webp`;
 
-      // Pass 1: Premium 82% WebP (Visually Lossless for sharp text & fine texture)
-      const pass1Quality = 0.82;
-      canvas.toBlob(
-        (blob1) => {
-          if (!blob1) return resolve(file);
-          if (blob1.size <= targetMaxKB * 1024) {
-            return resolve(new File([blob1], filename, { type: 'image/webp' }));
-          }
+      // Progressive passes to guarantee output stays <= targetMaxKB
+      const attempts = [
+        { scale: 1.0, quality: 0.82 },
+        { scale: 1.0, quality: 0.78 },
+        { scale: 0.92, quality: 0.74 },
+        { scale: 0.85, quality: 0.70 },
+        { scale: 0.75, quality: 0.65 },
+        { scale: 0.65, quality: 0.60 },
+      ];
 
-          // Pass 2: High detail image exceeding targetMaxKB, adjust quality slightly to 0.78
-          const pass2Quality = 0.78;
-          canvas.toBlob(
-            (blob2) => {
-              if (blob2 && blob2.size <= targetMaxKB * 1024) {
-                return resolve(new File([blob2], filename, { type: 'image/webp' }));
-              }
+      let bestBlob: Blob | null = null;
 
-              // Pass 3: If still over target, scale gently to 94%
-              const scale = 0.94;
-              const c2 = document.createElement('canvas');
-              c2.width = Math.round(width * scale);
-              c2.height = Math.round(height * scale);
-              const ctx2 = c2.getContext('2d');
-              if (ctx2) {
-                ctx2.imageSmoothingEnabled = true;
-                ctx2.imageSmoothingQuality = 'high';
-                ctx2.drawImage(canvas, 0, 0, c2.width, c2.height);
-                c2.toBlob(
-                  (blob3) => {
-                    const finalBlob = blob3 || blob2 || blob1;
-                    resolve(new File([finalBlob], filename, { type: 'image/webp' }));
-                  },
-                  'image/webp',
-                  pass2Quality
-                );
-              } else {
-                resolve(new File([blob2 || blob1], filename, { type: 'image/webp' }));
-              }
-            },
-            'image/webp',
-            pass2Quality
-          );
-        },
-        'image/webp',
-        pass1Quality
-      );
+      for (const attempt of attempts) {
+        const w = Math.max(1, Math.round(width * attempt.scale));
+        const h = Math.max(1, Math.round(height * attempt.scale));
+        const c = document.createElement('canvas');
+        c.width = w;
+        c.height = h;
+        const ctx = c.getContext('2d');
+        if (!ctx) break;
+
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(img, 0, 0, w, h);
+
+        const blob = await canvasToWebpBlob(c, attempt.quality);
+        if (!blob) {
+          // Browser doesn't support true WebP canvas encoding (e.g., older Safari/iOS WebKit)
+          // Return original file so it falls back to server-side Sharp WebP optimization
+          return resolve(file);
+        }
+
+        bestBlob = blob;
+        if (blob.size <= targetBytes) {
+          return resolve(new File([blob], filename, { type: 'image/webp' }));
+        }
+      }
+
+      if (bestBlob && bestBlob.size <= targetBytes) {
+        return resolve(new File([bestBlob], filename, { type: 'image/webp' }));
+      }
+
+      // If still over targetBytes, return bestBlob only if it's smaller than original;
+      // the presigned check below will route oversized blobs to server-side Sharp!
+      if (bestBlob) {
+        return resolve(new File([bestBlob], filename, { type: 'image/webp' }));
+      }
+
+      resolve(file);
     };
 
     img.onerror = () => {
@@ -125,6 +141,7 @@ export async function uploadImageToR2(
 
   const isBanner = folder === 'banners' || folder.includes('banner') || folder.includes('hero');
   const targetMaxKB = options.targetMaxKB ?? (isBanner ? 400 : 150);
+  const targetMaxBytes = targetMaxKB * 1024;
   const maxWidthOrHeight = options.maxWidthOrHeight ?? (isBanner ? 2100 : 1200);
 
   // 1. If it's a browser File and compression is enabled, compress to WebP
@@ -140,7 +157,9 @@ export async function uploadImageToR2(
       throw new Error(`Image size cannot exceed 1 MB! Your file is ${sizeMB} MB. Please upload an image under 1 MB.`);
     }
 
-    if (compress && file.type.startsWith('image/') && !file.type.includes('svg') && !file.type.includes('gif')) {
+    const isSvgOrGif = file.type.includes('svg') || file.type.includes('gif');
+
+    if (compress && file.type.startsWith('image/') && !isSvgOrGif) {
       try {
         uploadFile = await compressImageInBrowser(file, targetMaxKB, maxWidthOrHeight);
         contentType = uploadFile.type || 'image/webp';
@@ -157,45 +176,57 @@ export async function uploadImageToR2(
       filename = file.name;
     }
 
-    // 2. Try direct Presigned PUT Upload to Cloudflare R2
-    try {
-      const presignedRes = await fetch('/api/upload/presigned', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          filename,
-          contentType,
-          folder,
-        }),
-      });
+    // 2. Try direct Presigned PUT Upload to Cloudflare R2 ONLY if:
+    //    - Image is genuinely converted to 'image/webp' (or SVG/GIF)
+    //    - AND compressed file size is strictly within targetMaxBytes (150KB for products, 400KB for banners)
+    //    If browser WebP encoding failed (e.g., iOS Safari PNG fallback) or exceeded targetMaxBytes,
+    //    skip presigned upload so server-side `/api/upload` (Sharp) optimizes it!
+    const canUsePresigned =
+      uploadFile &&
+      (isSvgOrGif || (uploadFile.type === 'image/webp' && uploadFile.size <= targetMaxBytes));
 
-      if (presignedRes.ok) {
-        const { uploadUrl, publicUrl } = await presignedRes.json();
-        if (uploadUrl && publicUrl) {
-          const directUploadRes = await fetch(uploadUrl, {
-            method: 'PUT',
-            headers: {
-              'Content-Type': contentType,
-            },
-            body: uploadFile,
-          });
+    if (canUsePresigned && uploadFile) {
+      try {
+        const presignedRes = await fetch('/api/upload/presigned', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            filename,
+            contentType,
+            folder,
+            fileSize: uploadFile.size,
+          }),
+        });
 
-          if (directUploadRes.ok) {
-            return publicUrl;
+        if (presignedRes.ok) {
+          const { uploadUrl, publicUrl } = await presignedRes.json();
+          if (uploadUrl && publicUrl) {
+            const directUploadRes = await fetch(uploadUrl, {
+              method: 'PUT',
+              headers: {
+                'Content-Type': contentType,
+              },
+              body: uploadFile,
+            });
+
+            if (directUploadRes.ok) {
+              return publicUrl;
+            }
           }
         }
+      } catch (presignedErr) {
+        console.warn('Presigned upload failed, falling back to server /api/upload:', presignedErr);
       }
-    } catch (presignedErr) {
-      console.warn('Presigned upload failed, falling back to server /api/upload:', presignedErr);
     }
   }
 
-  // 3. Fallback to server-side /api/upload (which also writes directly to Cloudflare R2)
+  // 3. Fallback to server-side /api/upload (Sharp WebP compression + R2 upload)
+  // Always send original `file` if client-side compression couldn't produce a valid <=targetMaxBytes WebP
   const formData = new FormData();
   if (typeof file === 'string') {
     const base64Data = file.split(',')[1] || file;
     formData.append('image', base64Data);
-  } else if (uploadFile) {
+  } else if (uploadFile && uploadFile.type === 'image/webp' && uploadFile.size <= targetMaxBytes) {
     formData.append('image', uploadFile);
   } else {
     formData.append('image', file);
@@ -212,7 +243,7 @@ export async function uploadImageToR2(
   try {
     data = JSON.parse(text);
   } catch {
-    throw new Error(`Upload failed: Unexpected response from server. Status: ${response.status}`);
+    throw new Error(`Upload failed: Unexpected server response (Status: ${response.status})`);
   }
 
   if (response.ok && data.url) {

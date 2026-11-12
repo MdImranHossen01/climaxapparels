@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { filename, contentType, folder = 'products' } = body;
+    const { filename, contentType, folder = 'products', fileSize } = body;
 
     if (!filename || !contentType) {
       return NextResponse.json(
@@ -37,17 +37,26 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const isBanner = folder === 'banners' || folder.includes('banner') || folder.includes('hero');
+    const maxAllowedBytes = isBanner ? 400 * 1024 : 150 * 1024;
+
+    if (typeof fileSize !== 'number' || fileSize <= 0 || fileSize > maxAllowedBytes) {
+      return NextResponse.json(
+        { message: `Direct presigned upload requires optimized file size <= ${Math.round(maxAllowedBytes / 1024)}KB. Use /api/upload for server optimization.` },
+        { status: 400 }
+      );
+    }
+
+    // Only allow already-optimized WebP (or SVG/GIF) for direct presigned upload;
+    // raw JPEG/PNG or Safari PNG-fallback blobs must go through `/api/upload` (Sharp)
     const allowedTypes = [
-      'image/jpeg',
-      'image/jpg',
-      'image/png',
       'image/webp',
       'image/gif',
       'image/svg+xml',
     ];
     if (!allowedTypes.includes(contentType.toLowerCase())) {
       return NextResponse.json(
-        { message: 'Invalid file type. Only image files are allowed.' },
+        { message: 'Direct upload only accepts optimized WebP/SVG/GIF. Falling back to server optimization.' },
         { status: 400 }
       );
     }
@@ -62,6 +71,7 @@ export async function POST(req: NextRequest) {
       Bucket: R2_BUCKET_NAME,
       Key: fileKey,
       ContentType: contentType,
+      ContentLength: Number(fileSize),
     });
 
     const uploadUrl = await getSignedUrl(r2Client, command, { expiresIn: 300 });

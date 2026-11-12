@@ -71,22 +71,30 @@ export async function POST(req: NextRequest) {
         const sharp = (await import('sharp')).default;
         const isBanner = folder === 'banners' || folder.includes('banner') || folder.includes('hero');
         const maxDim = isBanner ? 2160 : 1200;
-        const targetSize = isBanner ? 450 * 1024 : 155 * 1024;
-        const initialQuality = 82;
-        const fallbackQuality = 78;
+        const targetSize = isBanner ? 400 * 1024 : 150 * 1024;
 
-        let optimized = await sharp(buffer)
-          .rotate()
-          .resize({ width: maxDim, height: maxDim, fit: 'inside', withoutEnlargement: true })
-          .webp({ quality: initialQuality, effort: 5 })
-          .toBuffer();
+        // Progressive passes to strictly guarantee output size <= targetSize (150KB for products, 400KB for banners)
+        const attempts = [
+          { scale: 1.0, quality: 82 },
+          { scale: 1.0, quality: 78 },
+          { scale: 0.92, quality: 74 },
+          { scale: 0.85, quality: 70 },
+          { scale: 0.75, quality: 65 },
+          { scale: 0.65, quality: 60 },
+        ];
 
-        if (optimized.length > targetSize) {
+        let optimized = buffer;
+        for (const attempt of attempts) {
+          const dim = Math.max(100, Math.round(maxDim * attempt.scale));
           optimized = await sharp(buffer)
             .rotate()
-            .resize({ width: Math.round(maxDim * 0.94), height: Math.round(maxDim * 0.94), fit: 'inside', withoutEnlargement: true })
-            .webp({ quality: fallbackQuality, effort: 5 })
+            .resize({ width: dim, height: dim, fit: 'inside', withoutEnlargement: true })
+            .webp({ quality: attempt.quality, effort: 5 })
             .toBuffer();
+
+          if (optimized.length <= targetSize) {
+            break;
+          }
         }
 
         buffer = optimized;
