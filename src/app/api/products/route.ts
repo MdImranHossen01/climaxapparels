@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { revalidateTag, revalidatePath } from 'next/cache';
 import connectToDatabase from '@/lib/db';
+import '@/models/Category';
 import Product from '@/models/Product';
 import { auth } from '@/auth';
 import { slugify } from '@/lib/slugify';

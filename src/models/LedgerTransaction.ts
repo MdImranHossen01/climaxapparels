@@ -1,5 +1,6 @@
 import mongoose, { Document, Model, Schema } from 'mongoose';
 
+import './LedgerAccount';
 export interface ILedgerTransaction extends Document {
   account: mongoose.Types.ObjectId | string;
   date: Date;

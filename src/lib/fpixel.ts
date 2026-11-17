@@ -63,8 +63,10 @@ export const fbEvent = (
 
   const finalEventName = eventName;
 
-  // 1. Browser Pixel Tracking
-  if (typeof window !== "undefined" && typeof window.fbq === "function") {
+  // 1. Browser Pixel Tracking (with retry if fbevents.js inline init hasn't executed yet on initial 0ms load)
+  if (typeof window !== "undefined") {
+    const fireBrowserPixel = (attempts = 25) => {
+      if (typeof window.fbq === "function") {
     const standardEvents = [
       "AddPaymentInfo", "CompleteRegistration",
       "Contact", "CustomizeProduct", "Donate", "FindLocation",
@@ -101,6 +103,11 @@ export const fbEvent = (
     } else {
       window.fbq("track", finalEventName, customData, { eventID: eventId });
     }
+      } else if (attempts > 0) {
+        setTimeout(() => fireBrowserPixel(attempts - 1), 100);
+      }
+    };
+    fireBrowserPixel();
   }
 
   // 2. Server-side (CAPI) Tracking

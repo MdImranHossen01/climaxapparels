@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
 
         if (!pixelId || !accessToken) {
             console.error('[FB CAPI] Missing configuration for', hostname, { hasPixelId: !!pixelId, hasAccessToken: !!accessToken });
-            return NextResponse.json({ error: 'Missing Facebook config' }, { status: 500 });
+            return NextResponse.json({ skipped: true, reason: 'Facebook CAPI not configured' }, { status: 200 });
         }
 
         const body = await request.json();

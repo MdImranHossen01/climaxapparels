@@ -1,5 +1,7 @@
 import mongoose, { Document, Model, Schema } from 'mongoose';
 
+import './User';
+import './Order';
 export interface IWalletTransaction extends Document {
   userId: mongoose.Types.ObjectId;
   amount: number;

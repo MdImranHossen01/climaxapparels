@@ -1,5 +1,7 @@
 import mongoose, { Document, Model, Schema } from 'mongoose';
 
+import './User';
+import './Product';
 export interface IAbandonedCartItem {
   product: mongoose.Types.ObjectId;
   name: string;

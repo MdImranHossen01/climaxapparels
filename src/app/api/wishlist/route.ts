@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectToDatabase from '@/lib/db';
 import User from '@/models/User';
-import Product from '@/models/Product';
+import '@/models/Product';
 import { auth } from '@/auth';
 
 // GET the user's wishlist (populated)

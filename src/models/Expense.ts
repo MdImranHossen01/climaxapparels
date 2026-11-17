@@ -1,5 +1,6 @@
 import mongoose, { Document, Model, Schema } from 'mongoose';
 
+import './LedgerAccount';
 export interface IExpense extends Document {
   title: string;
   amount: number;
