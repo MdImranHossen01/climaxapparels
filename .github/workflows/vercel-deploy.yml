@@ -1,0 +1,170 @@
+name: Deploy ClimaxApparels to Vercel (Zero Build Cost)
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+  NODE_OPTIONS: --max-old-space-size=6144
+
+jobs:
+  deploy-vercel-production:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
+
+      - name: Pull Vercel Production Environment
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Sync ENV_FILE to Vercel Production & Build Env (Optional)
+        env:
+          ENV_FILE: ${{ secrets.ENV_FILE }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          if [ -z "$ENV_FILE" ]; then
+            echo "ENV_FILE secret not set, using Vercel env only."
+            exit 0
+          fi
+
+          node << 'EOF'
+          const fs = require("fs");
+
+          const token = process.env.VERCEL_TOKEN;
+          const projectId = process.env.VERCEL_PROJECT_ID;
+          const orgId = process.env.VERCEL_ORG_ID;
+          const envFile = process.env.ENV_FILE || "";
+
+          const parseEnv = (src) => {
+            const map = new Map();
+            for (const rawLine of src.split(/\r?\n/)) {
+              const line = rawLine.trim();
+              if (!line || line.startsWith("#")) continue;
+              const match = line.match(/^([A-Za-z_][A-Za-z0-9_]*)\s*=(.*)$/);
+              if (!match) continue;
+              const key = match[1];
+              let val = match[2].trim();
+              if (
+                (val.startsWith('"') && val.endsWith('"')) ||
+                (val.startsWith("'") && val.endsWith("'"))
+              ) {
+                val = val.slice(1, -1);
+              }
+              map.set(key, val);
+            }
+            return map;
+          };
+
+          const rawLinesMap = new Map();
+          for (const rawLine of envFile.split(/\r?\n/)) {
+            const match = rawLine.match(/^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=(.*)$/);
+            if (match) rawLinesMap.set(match[1], match[2]);
+          }
+
+          // 1. Merge ENV_FILE into .vercel/.env.production.local for GitHub Runner build
+          const envPath = ".vercel/.env.production.local";
+          const existing = fs.existsSync(envPath) ? fs.readFileSync(envPath, "utf8") : "";
+          const merged = new Map();
+          for (const line of existing.split(/\r?\n/)) {
+            const m = line.match(/^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=(.*)$/);
+            if (m) merged.set(m[1], m[2]);
+          }
+          for (const [k, v] of rawLinesMap) {
+            merged.set(k, v);
+          }
+          fs.mkdirSync(".vercel", { recursive: true });
+          fs.writeFileSync(
+            envPath,
+            [...merged.entries()].map(([k, v]) => `${k}=${v}`).join("\n") + "\n"
+          );
+          console.log(`Merged ${rawLinesMap.size} ENV_FILE vars into ${envPath}`);
+
+          // 2. Sync ENV_FILE to Vercel Production Environment Variables (free API call, no build triggered)
+          const skipKeys = new Set([
+            "VERCEL",
+            "VERCEL_ENV",
+            "VERCEL_URL",
+            "VERCEL_REGION",
+            "VERCEL_ORG_ID",
+          ]);
+          const parsed = parseEnv(envFile);
+          const payload = [];
+          for (const [key, value] of parsed) {
+            if (!value || skipKeys.has(key)) continue;
+            if (value.startsWith("PASTE_")) continue;
+            payload.push({
+              key,
+              value,
+              type: "encrypted",
+              target: ["production"],
+            });
+          }
+
+          (async () => {
+            if (!token || !projectId || payload.length === 0) return;
+            const teamQuery = orgId ? `&teamId=${encodeURIComponent(orgId)}` : "";
+            const url = `https://api.vercel.com/v10/projects/${encodeURIComponent(projectId)}/env?upsert=true${teamQuery}`;
+            const res = await fetch(url, {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(payload),
+            });
+            if (res.ok) {
+              console.log(`Synced ${payload.length} Production env vars to Vercel.`);
+              return;
+            }
+            let synced = 0;
+            let skipped = 0;
+            for (const item of payload) {
+              const r = await fetch(url, {
+                method: "POST",
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify(item),
+              });
+              if (r.ok) synced++;
+              else skipped++;
+            }
+            console.log(`Synced ${synced} Production env vars to Vercel (${skipped} unchanged/sensitive).`);
+          })().catch((err) => {
+            console.warn("Vercel env sync warning:", err.message);
+          });
+          EOF
+
+      - name: Build Project on GitHub Runner ($0 Vercel Build Cost)
+        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Deploy Prebuilt Artifacts to Vercel Production
+        run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Auto-Purge Cloudflare Cache (Optional)
+        env:
+          CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          if [ -n "$CLOUDFLARE_ZONE_ID" ] && [ -n "$CLOUDFLARE_API_TOKEN" ]; then
+            curl -sS -X POST "https://api.cloudflare.com/client/v4/zones/${CLOUDFLARE_ZONE_ID}/purge_cache" \
+              -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
+              -H "Content-Type: application/json" \
+              --data '{"purge_everything":true}'
+          else
+            echo "Cloudflare secrets not set, skipping purge."
+          fi
