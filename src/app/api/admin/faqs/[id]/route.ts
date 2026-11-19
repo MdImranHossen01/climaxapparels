@@ -4,6 +4,7 @@ import FAQ from '@/models/FAQ';
 import { auth } from '@/auth';
 import mongoose from 'mongoose';
 import { revalidateTag } from 'next/cache';
+import { purgeCloudflareCache } from '@/lib/cloudflareCache';
 
 export async function PATCH(
   req: NextRequest,
@@ -50,6 +51,7 @@ export async function PATCH(
     // Revalidate Next.js Cache
     revalidateTag('faqs', 'max');
 
+    await purgeCloudflareCache().catch(() => {});
     return NextResponse.json(faq);
   } catch (error) {
     console.error('Update FAQ Error:', error);
@@ -83,6 +85,7 @@ export async function DELETE(
     // Revalidate Next.js Cache
     revalidateTag('faqs', 'max');
 
+    await purgeCloudflareCache().catch(() => {});
     return NextResponse.json({ message: 'FAQ deleted successfully' });
   } catch (error) {
     console.error('Delete FAQ Error:', error);

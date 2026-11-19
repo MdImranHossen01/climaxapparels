@@ -74,7 +74,7 @@ export async function PUT(
 
     await revalidateTag('categories', 'max');
     revalidatePath('/');
-    purgeCloudflareCache().catch(() => {});
+    await purgeCloudflareCache().catch(() => {});
 
     return NextResponse.json(updatedCategory);
   } catch (error) {
@@ -129,7 +129,7 @@ export async function DELETE(
       try {
         await revalidateTag('categories', 'max');
         revalidatePath('/');
-        purgeCloudflareCache().catch(() => {});
+        await purgeCloudflareCache().catch(() => {});
       } catch (e) {
         console.error('Revalidation error:', e);
       }

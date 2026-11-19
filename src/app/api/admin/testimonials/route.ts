@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import { auth } from '@/auth';
 import dbConnect from '@/lib/db';
 import GlobalSettings from '@/models/GlobalSettings';
+import { purgeCloudflareCache } from '@/lib/cloudflareCache';
 
 export async function GET(req: NextRequest) {
   try {
@@ -31,6 +32,7 @@ export async function POST(req: NextRequest) {
       { new: true, upsert: true, sort: { updatedAt: -1 } }
     );
 
+    await purgeCloudflareCache().catch(() => {});
     return NextResponse.json(settings.testimonials);
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
@@ -58,6 +60,7 @@ export async function PUT(req: NextRequest) {
       { new: true }
     );
 
+    await purgeCloudflareCache().catch(() => {});
     return NextResponse.json(settings?.testimonials || []);
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
@@ -84,6 +87,7 @@ export async function DELETE(req: NextRequest) {
       { new: true, sort: { updatedAt: -1 } }
     );
 
+    await purgeCloudflareCache().catch(() => {});
     return NextResponse.json(settings?.testimonials || []);
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });

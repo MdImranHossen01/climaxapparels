@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import connectToDatabase from '@/lib/db';
 import LandingPage from '@/models/LandingPage';
 import { auth } from '@/auth';
+import { purgeCloudflareCache } from '@/lib/cloudflareCache';
 
 // Auth helper
 async function authorizeAdmin() {
@@ -64,6 +65,7 @@ export async function POST(req: NextRequest) {
       sections: [], // Start with empty sections
     });
 
+    await purgeCloudflareCache().catch(() => {});
     return NextResponse.json(newPage, { status: 201 });
   } catch (error: any) {
     console.error('Error creating landing page:', error);

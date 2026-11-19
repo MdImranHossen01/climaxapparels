@@ -32,7 +32,7 @@ export async function PUT(
 
     revalidateTag('banners', 'max');
     revalidatePath('/');
-    purgeCloudflareCache().catch(() => {});
+    await purgeCloudflareCache().catch(() => {});
 
     return NextResponse.json(banner);
   } catch (error) {
@@ -66,7 +66,7 @@ export async function DELETE(
 
     revalidateTag('banners', 'max');
     revalidatePath('/');
-    purgeCloudflareCache().catch(() => {});
+    await purgeCloudflareCache().catch(() => {});
 
     return NextResponse.json({ message: 'Banner deleted successfully' });
   } catch (error) {

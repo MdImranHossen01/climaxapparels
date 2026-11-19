@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
 
     revalidateTag('banners', 'max');
     revalidatePath('/');
-    purgeCloudflareCache().catch(() => {});
+    await purgeCloudflareCache().catch(() => {});
 
     return NextResponse.json(banner, { status: 201 });
   } catch (error) {

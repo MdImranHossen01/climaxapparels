@@ -215,7 +215,7 @@ export async function POST(req: NextRequest) {
     revalidatePath('/', 'layout');
     revalidatePath('/shop', 'page');
     revalidatePath('/blog', 'page');
-    purgeCloudflareCache().catch(() => {});
+    await purgeCloudflareCache().catch(() => {});
 
     // Mask sensitive response data for the return
     const updatedRaw = settings.toObject({ getters: false });

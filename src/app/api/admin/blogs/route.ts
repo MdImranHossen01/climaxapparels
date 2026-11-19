@@ -77,7 +77,7 @@ export async function POST(req: NextRequest) {
       revalidatePath('/');
       revalidatePath('/blog');
       revalidateTag('blogs', 'max');
-      purgeCloudflareCache().catch(() => {});
+      await purgeCloudflareCache().catch(() => {});
     } catch (revalidateError) {
       console.error('[Admin Blog Create revalidatePath] error:', revalidateError);
     }

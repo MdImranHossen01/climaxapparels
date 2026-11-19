@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
 
     revalidateTag('categories', 'max');
     revalidatePath('/');
-    purgeCloudflareCache().catch(() => {});
+    await purgeCloudflareCache().catch(() => {});
 
     return NextResponse.json(newCategory, { status: 201 });
   } catch (error) {

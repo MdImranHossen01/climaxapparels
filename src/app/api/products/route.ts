@@ -162,7 +162,7 @@ export async function POST(req: NextRequest) {
 
         revalidateTag('products', 'max');
         revalidatePath('/');
-        purgeCloudflareCache().catch(() => {});
+        await purgeCloudflareCache().catch(() => {});
         return NextResponse.json(newProduct, { status: 201 });
       } catch (error: any) {
         lastError = error;
