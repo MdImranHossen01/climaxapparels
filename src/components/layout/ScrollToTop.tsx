@@ -5,27 +5,15 @@ import { ChevronUp } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { AIChatbot } from "./AIChatbot";
+import { useSettings } from "@/components/SettingsProvider";
 
 export function ScrollToTop() {
+  const settings = useSettings();
   const [isVisible, setIsVisible] = useState(false);
-  const [whatsappNumber, setWhatsappNumber] = useState<string | null>(null);
-  const [geminiApiKey, setGeminiApiKey] = useState<string | null>(null);
+  const whatsappNumber = settings?.socialLinks?.whatsapp || null;
+  const geminiApiKey = settings?.aiConfig?.geminiApiKey || null;
 
   useEffect(() => {
-    const fetchSettings = async () => {
-      try {
-        const res = await fetch('/api/settings');
-        if (res.ok) {
-          const data = await res.json();
-          setWhatsappNumber(data.socialLinks?.whatsapp || null);
-          setGeminiApiKey(data.aiConfig?.geminiApiKey || null);
-        }
-      } catch (err) {
-        console.error('Error fetching settings:', err);
-      }
-    };
-    fetchSettings();
-
     const toggleVisibility = () => {
       if (window.scrollY > 300) {
         setIsVisible(true);

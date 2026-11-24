@@ -1,4 +1,4 @@
-﻿/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
@@ -29,7 +29,9 @@ export default function NavbarV5() {
   const settings = useSettings();
   const { data: session } = useSession();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [categories, setCategories] = useState<any[]>([]);
+  const [categories, setCategories] = useState<any[]>(() =>
+    Array.isArray(settings?.categories) ? settings.categories.filter((c: any) => c.isActive && !c.parentCategory) : []
+  );
   const [profile, setProfile] = useState<any>(null);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -43,6 +45,7 @@ export default function NavbarV5() {
   const wishlistCount = useAppSelector((state) => state.wishlist.items.length);
 
   useEffect(() => {
+    if (Array.isArray(settings?.categories)) { setCategories(settings.categories.filter((c: any) => c.isActive && !c.parentCategory)); return; }
     fetch('/api/categories')
       .then(res => res.json())
       .then(data => setCategories(data.filter((c: any) => c.isActive && !c.parentCategory)))
