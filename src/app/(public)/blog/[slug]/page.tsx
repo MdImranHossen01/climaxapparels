@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { getCachedBlogBySlug, getCachedSettings } from '@/lib/data-fetching';
+import { getCachedBlogBySlug, getCachedBlogs, getCachedSettings } from '@/lib/data-fetching';
 import { BlogDetailsSelector } from '@/components/templates/ServerRegistry';
 import { ViewTracker } from '@/components/common/ViewTracker';
 import { FBBlogTracker } from '@/components/common/FBBlogTracker';
@@ -26,6 +26,17 @@ async function getBlog(slug: string) {
 }
 
 export const revalidate = 31536000;
+
+export async function generateStaticParams() {
+  try {
+    const blogs = await getCachedBlogs(200);
+    return (blogs || [])
+      .filter((b: any) => b?.slug)
+      .map((b: any) => ({ slug: String(b.slug) }));
+  } catch {
+    return [];
+  }
+}
 
 export async function generateMetadata({ params }: BlogDetailProps): Promise<Metadata> {
   const { slug } = await params;

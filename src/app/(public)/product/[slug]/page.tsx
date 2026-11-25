@@ -7,7 +7,7 @@ import { generateProductSchema, generateBreadcrumbSchema } from '@/lib/seo';
 import { ProductDetailsSelector } from '@/components/templates/ServerRegistry';
 import { ProductCard } from '@/components/storefront/ProductCard';
 import { ViewTracker } from '@/components/common/ViewTracker';
-import { getCachedProductBySlug, getCachedSettings } from '@/lib/data-fetching';
+import { getCachedProductBySlug, getCachedProducts, getCachedSettings } from '@/lib/data-fetching';
 import { notFound } from 'next/navigation';
 
 const sanitizeForScript = (json: any) => {
@@ -19,6 +19,17 @@ const getProduct = async (slug: string) => {
 };
 
 export const revalidate = 31536000;
+
+export async function generateStaticParams() {
+  try {
+    const products = await getCachedProducts({}, 200);
+    return (products || [])
+      .filter((p: any) => p?.slug)
+      .map((p: any) => ({ slug: String(p.slug) }));
+  } catch {
+    return [];
+  }
+}
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
