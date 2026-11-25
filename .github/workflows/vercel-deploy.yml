@@ -153,7 +153,13 @@ jobs:
         run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
 
       - name: Deploy Prebuilt Artifacts to Vercel Production
-        run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+        run: |
+          for i in 1 2 3; do
+            vercel deploy --prebuilt --prod --archive=tgz --token=${{ secrets.VERCEL_TOKEN }} && exit 0
+            echo "Deploy attempt $i failed, retrying in 10s..."
+            sleep 10
+          done
+          exit 1
 
       - name: Auto-Purge Cloudflare Cache (Optional)
         env:
