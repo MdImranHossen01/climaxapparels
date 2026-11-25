@@ -1,5 +1,4 @@
-﻿import { headers } from 'next/headers';
-import { Suspense } from 'react';
+﻿import { Suspense } from 'react';
 import { getCachedProducts, getCachedCategories, getCachedSettings } from '@/lib/data-fetching';
 import { ShopHeaderSkeleton, ProductCardSkeleton } from '@/components/storefront/Skeletons';
 import { ShopListingSelector } from '@/components/templates/ServerRegistry';
@@ -9,10 +8,14 @@ import { Metadata } from 'next';
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getCachedSettings();
   const brandName = settings?.brandName || 'Climax Apparels';
-  const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
-  const headersList = await headers();
-  const hostname = headersList.get('host') || 'localhost';
-  const baseUrl = `${protocol}://${hostname}`;
+  const rawSiteUrl =
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    process.env.NEXT_PUBLIC_APP_URL ||
+    process.env.NEXTAUTH_URL ||
+    (process.env.VERCEL_PROJECT_PRODUCTION_URL
+      ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+      : 'http://localhost:3000');
+  const baseUrl = rawSiteUrl.startsWith('http') ? rawSiteUrl : `https://${rawSiteUrl}`;
 
   return {
     title: `Shop Premium Healthcare & Medicines | ${brandName}`,

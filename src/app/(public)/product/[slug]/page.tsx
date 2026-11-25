@@ -3,7 +3,6 @@ import { ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { Metadata } from 'next';
-import { headers } from 'next/headers';
 import { generateProductSchema, generateBreadcrumbSchema } from '@/lib/seo';
 import { ProductDetailsSelector } from '@/components/templates/ServerRegistry';
 import { ProductCard } from '@/components/storefront/ProductCard';
@@ -19,6 +18,8 @@ const getProduct = async (slug: string) => {
   return getCachedProductBySlug(slug);
 };
 
+export const revalidate = 31536000;
+
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
   const [product, settings] = await Promise.all([
@@ -27,10 +28,14 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   ]);
   if (!product) return { title: 'Product Not Found' };
 
-  const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
-  const headersList = await headers();
-  const hostname = headersList.get('host') || 'localhost';
-  const baseUrl = `${protocol}://${hostname}`;
+  const rawSiteUrl =
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    process.env.NEXT_PUBLIC_APP_URL ||
+    process.env.NEXTAUTH_URL ||
+    (process.env.VERCEL_PROJECT_PRODUCTION_URL
+      ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+      : 'http://localhost:3000');
+  const baseUrl = rawSiteUrl.startsWith('http') ? rawSiteUrl : `https://${rawSiteUrl}`;
 
   // Strip HTML tags and JSON structure for a clean meta description
   const cleanDescription = (product.description ?? '')

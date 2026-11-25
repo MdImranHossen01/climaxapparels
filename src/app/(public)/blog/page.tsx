@@ -1,15 +1,18 @@
 ﻿import { Metadata } from 'next';
-import { headers } from 'next/headers';
 import { getCachedBlogs, getCachedSettings } from '@/lib/data-fetching';
 import { BlogListingSelector } from '@/components/templates/ServerRegistry';
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getCachedSettings();
   const brandName = settings?.brandName || 'Climax Apparels';
-  const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
-  const headersList = await headers();
-  const hostname = headersList.get('host') || 'localhost';
-  const baseUrl = `${protocol}://${hostname}`;
+  const rawSiteUrl =
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    process.env.NEXT_PUBLIC_APP_URL ||
+    process.env.NEXTAUTH_URL ||
+    (process.env.VERCEL_PROJECT_PRODUCTION_URL
+      ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+      : 'http://localhost:3000');
+  const baseUrl = rawSiteUrl.startsWith('http') ? rawSiteUrl : `https://${rawSiteUrl}`;
 
   return {
     title: `Health, Medicine & Wellness Blog | Expert Medical Guides | ${brandName}`,

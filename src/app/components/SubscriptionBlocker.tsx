@@ -1,4 +1,7 @@
+"use client";
+
 ﻿import React from 'react';
+import { useSession } from 'next-auth/react';
 import { ShieldAlert, MessageCircle, Globe } from 'lucide-react';
 
 interface SubscriptionBlockerProps {
@@ -7,6 +10,8 @@ interface SubscriptionBlockerProps {
 }
 
 export default function SubscriptionBlocker({ brandName, expiryDate }: SubscriptionBlockerProps) {
+  const { data: session } = useSession();
+  if ((session?.user as any)?.role === 'super_admin') return null;
   return (
     <div className="fixed inset-0 z-[9999] bg-white flex items-center justify-center p-4 text-center">
       <div className="max-w-md w-full space-y-8 animate-in fade-in zoom-in duration-500">
