@@ -1,11 +1,11 @@
 import dynamic from 'next/dynamic';
 
 // --- FOOTERS ---
-import FooterV1 from './footers/FooterV1';
-import FooterV2 from './footers/FooterV2';
-import FooterV3 from './footers/FooterV3';
-import FooterV4 from './footers/FooterV4';
-import FooterV5 from './footers/FooterV5';
+const FooterV1 = dynamic(() => import('./footers/FooterV1'));
+const FooterV2 = dynamic(() => import('./footers/FooterV2'));
+const FooterV3 = dynamic(() => import('./footers/FooterV3'));
+const FooterV4 = dynamic(() => import('./footers/FooterV4'));
+const FooterV5 = dynamic(() => import('./footers/FooterV5'));
 
 export const FooterSelector = ({ style }: { style: string }) => {
   switch (style) {
@@ -19,11 +19,11 @@ export const FooterSelector = ({ style }: { style: string }) => {
 };
 
 // --- PRODUCT DETAILS ---
-import ProductDetailsV1 from './product-details/ProductDetailsV1';
-import ProductDetailsV2 from './product-details/ProductDetailsV2';
-import ProductDetailsV3 from './product-details/ProductDetailsV3';
-import ProductDetailsV4 from './product-details/ProductDetailsV4';
-import ProductDetailsV5 from './product-details/ProductDetailsV5';
+const ProductDetailsV1 = dynamic(() => import('./product-details/ProductDetailsV1'));
+const ProductDetailsV2 = dynamic(() => import('./product-details/ProductDetailsV2'));
+const ProductDetailsV3 = dynamic(() => import('./product-details/ProductDetailsV3'));
+const ProductDetailsV4 = dynamic(() => import('./product-details/ProductDetailsV4'));
+const ProductDetailsV5 = dynamic(() => import('./product-details/ProductDetailsV5'));
 
 export const ProductDetailsSelector = ({ style, product }: { style: string, product: any }) => {
   switch (style) {
@@ -37,11 +37,11 @@ export const ProductDetailsSelector = ({ style, product }: { style: string, prod
 };
 
 // --- BLOG DETAILS ---
-import BlogDetailsV1 from './blog-details/BlogDetailsV1';
-import BlogDetailsV2 from './blog-details/BlogDetailsV2';
-import BlogDetailsV3 from './blog-details/BlogDetailsV3';
-import BlogDetailsV4 from './blog-details/BlogDetailsV4';
-import BlogDetailsV5 from './blog-details/BlogDetailsV5';
+const BlogDetailsV1 = dynamic(() => import('./blog-details/BlogDetailsV1'));
+const BlogDetailsV2 = dynamic(() => import('./blog-details/BlogDetailsV2'));
+const BlogDetailsV3 = dynamic(() => import('./blog-details/BlogDetailsV3'));
+const BlogDetailsV4 = dynamic(() => import('./blog-details/BlogDetailsV4'));
+const BlogDetailsV5 = dynamic(() => import('./blog-details/BlogDetailsV5'));
 
 export const BlogDetailsSelector = ({ style, blog, readingTime }: { style: string, blog: any, readingTime: number }) => {
   switch (style) {
