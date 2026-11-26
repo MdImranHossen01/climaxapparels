@@ -184,9 +184,6 @@ export default async function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         {googleFontsUrl && <link rel="stylesheet" href={googleFontsUrl} />}
-        <link rel="preload" as="image" href="/assets/login_banner_v2.webp" />
-        <link rel="preload" as="image" href="/assets/register_banner_v2.webp" />
-        <link rel="preload" as="image" href="/assets/forgetpassrod.webp" />
       </head>
       <body
         className="antialiased min-h-full flex flex-col overflow-x-hidden font-sans"
