@@ -1,7 +1,7 @@
 ﻿import type { MetadataRoute } from 'next';
 import { getCachedSettings } from '@/lib/data-fetching';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 31536000;
 
 /**
  * Mapping of theme names to hex colors for PWA theme_color
