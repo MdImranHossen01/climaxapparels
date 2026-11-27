@@ -112,7 +112,7 @@ export const fbEvent = (
 
   // 2. Server-side (CAPI) Tracking
   // Only send CAPI if we are in the browser
-  if (typeof window !== "undefined") {
+  if (typeof window !== "undefined" && ((window as any).__fbPixelId || typeof window.fbq === "function")) {
     fetch("/api/facebook/event", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
