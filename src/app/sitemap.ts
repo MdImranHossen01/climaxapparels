@@ -1,11 +1,10 @@
 import { MetadataRoute } from "next";
-import { headers } from "next/headers";
 import connectToDatabase from "@/lib/db";
 import Product from "@/models/Product";
 import Category from "@/models/Category";
 import Blog from "@/models/Blog";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 31536000;
 
 const getDynamicRoutes = async (baseUrl: string): Promise<MetadataRoute.Sitemap> => {
   try {
@@ -62,13 +61,8 @@ const getDynamicRoutes = async (baseUrl: string): Promise<MetadataRoute.Sitemap>
 };
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const headersList = await headers();
-  const host = headersList.get('host') || 'localhost';
-
-  // Detect protocol safely
-  const forwardedProto = headersList.get('x-forwarded-proto');
-  const protocol = forwardedProto || (host.includes('localhost') ? 'http' : 'https');
-  const baseUrl = `${protocol}://${host}`;
+  const rawSiteUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : 'http://localhost:3000');
+  const baseUrl = rawSiteUrl.startsWith('http') ? rawSiteUrl.replace(/\/+$/, '') : `https://${rawSiteUrl.replace(/\/+$/, '')}`;
 
   const dynamicRoutes = await getDynamicRoutes(baseUrl);
 
